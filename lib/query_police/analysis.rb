@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'analysis/dynamic_message'
+require_relative "analysis/dynamic_message"
 
 module QueryPolice
   # This class is used to store analysis of a query and provide methods over them
@@ -49,7 +49,7 @@ module QueryPolice
       @summary = {}
     end
 
-    attr_accessor :tables, :table_count, :summary
+    attr_accessor :table_count, :tables, :summary
 
     # register a table analysis in analysis object
     # @param name [String] name of the table
@@ -71,7 +71,7 @@ module QueryPolice
     #  }
     def register_table(name, table_analysis)
       self.table_count += 1
-      self.tables.merge!(
+      tables.merge!(
         {
           name => {
             "id" => self.table_count,
@@ -90,7 +90,7 @@ module QueryPolice
 
     # to get analysis in pretty format with warnings and suggestions
     # @param opts [Hash] - possible options [positive: <boolean>, negative: <boolean>, caution: <boolean>]
-    # @return [String] pretty analysis 
+    # @return [String] pretty analysis
     def pretty_analysis(opts)
       final_message = ""
 
@@ -103,12 +103,12 @@ module QueryPolice
 
     # to get analysis in pretty format with warnings and suggestions for a impact
     # @param impact [String]
-    # @return [String] pretty analysis 
+    # @return [String] pretty analysis
     def pretty_analysis_for(impact)
       final_message = ""
 
-      self.tables.keys.each do |table|
-        table_message = table_pretty_analysis(table, {impact => true})
+      tables.keys.each do |table|
+        table_message = table_pretty_analysis(table, { impact => true })
 
         final_message += "table: #{table}\n#{table_message}\n" if table_message.present?
       end
@@ -119,11 +119,11 @@ module QueryPolice
     # to get analysis in pretty format with warnings and suggestions for a table
     # @param table [String] - table name
     # @param opts [Hash] - possible options [positive: <boolean>, negative: <boolean>, caution: <boolean>]
-    # @return [String] pretty analysis 
+    # @return [String] pretty analysis
     def table_pretty_analysis(table, opts)
       table_message = ""
 
-      self.tables.dig(table, "analysis").each do |column, column_analysis|
+      tables.dig(table, "analysis").each do |column, column_analysis|
         tags_message = ""
         column_analysis.dig("tags").each do |tag, tag_analysis|
           next unless opts.dig(tag_analysis.dig("impact")).present?

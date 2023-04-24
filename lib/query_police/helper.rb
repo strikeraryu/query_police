@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# QueryPolice::Helper
 module QueryPolice
   # This module define helper methods for query police
   module Helper
@@ -15,7 +16,7 @@ module QueryPolice
       flat_hash
     end
 
-    def logger(message, type="info")
+    def logger(message, type = "info")
       if defined?(Rails) && Rails.logger
         Rails.logger.send(type, message)
       else
@@ -24,17 +25,13 @@ module QueryPolice
     end
 
     def load_config(rules_path)
-      unless File.exists?(rules_path)
-        raise Error.new(
-          "Failed to load the rule file from '#{rules_path}'. " \
+      unless File.exist?(rules_path)
+        raise Error, "Failed to load the rule file from '#{rules_path}'. " \
           "The file may be missing or there is a problem with the path. " \
           "Please ensure that the file exists and the path is correct."
-        )
       end
 
-      rules_config = JSON.parse(File.read(rules_path))
-
-      rules_config
+      JSON.parse(File.read(rules_path))
     end
 
     module_function :flatten_hash, :logger, :load_config

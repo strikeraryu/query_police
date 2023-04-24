@@ -58,15 +58,13 @@ module QueryPolice
       begin
         if !payload[:exception].present? && payload[:name] =~ /.* Load/
           analysis = analyse(payload[:sql])
-          
+
           Helper.logger(analysis.pretty_analysis(logger_config))
         end
-      rescue => error
-        if silent.present?
-          Helper.logger("#{error.class}: #{error.message}", "error")
-        else
-          raise error
-        end
+      rescue StandardError => e
+        raise e unless silent.present?
+
+        Helper.logger("#{e.class}: #{e.message}", "error")
       end
     end
   end

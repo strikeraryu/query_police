@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-lib = File.expand_path('lib', __dir__)
+lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift lib unless $LOAD_PATH.include?(lib)
 
 require_relative "lib/query_police/version"
@@ -33,8 +33,8 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  spec.add_runtime_dependency "activesupport", ">= 3.0.0", "< 6.0.0"
   spec.add_runtime_dependency "activerecord", ">= 3.0.0", "< 6.0.0"
+  spec.add_runtime_dependency "activesupport", ">= 3.0.0", "< 6.0.0"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

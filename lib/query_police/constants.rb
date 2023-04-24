@@ -9,6 +9,6 @@ module QueryPolice
     DEFAULT_LOGGER_CONFIG = {
       "negative" => true
     }.freeze
-    DEFAULT_RULES_PATH =  File.join(File.dirname(__FILE__), "rules.json")
+    DEFAULT_RULES_PATH = File.join(File.dirname(__FILE__), "rules.json")
   end
 end
