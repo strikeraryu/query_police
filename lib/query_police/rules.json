@@ -1,0 +1,171 @@
+{
+  "select_type": {
+    "description": "Type of select used in the table.",
+    "value_type": "string",
+    "rules": {
+      "SIMPLE": {
+        "impact": "positive",
+        "message": "A simple query without subqueries or unions.",
+        "suggestion": ""
+      }
+    }
+  },
+  "type": {
+    "description": "Join used in the query for a specific table.",
+    "value_type": "string",
+    "rules": {
+      "system": {
+        "impact": "positive",
+        "message": "Table has zero or one row, no change required.",
+        "suggestion": ""
+      },
+      "const": {
+        "impact": "positive",
+        "message": "Table has only one indexed matching row, fastest join type.",
+        "suggestion": ""
+      },
+      "eq_ref": {
+        "impact": "positive",
+        "message": "All index parts used in join and index is primary_key or unique not null.",
+        "suggestion": ""
+      },
+      "ref": {
+        "impact": "caution",
+        "message": "All matching rows of an indexed column read for each combination of rows from previous table.",
+        "suggestion": "Ensure the referenced column is indexed and look for null values, dupilcates. Upgrade to eq_ref join type if possible.\nYou can acheive eq_ref by adding unique and not null to the index - $key used in $table table table."
+      },
+      "fulltext": {
+        "impact": "caution",
+        "message": "Join uses table FULLTEXT index, index key used - $key.",
+        "suggestion": "Should only be used for text heavy columns."
+      },
+      "ref_or_null": {
+        "impact": "caution",
+        "message": "Using ref index with Null value in $table table.",
+        "suggestion": "Please check if you can upgrade to eq_ref, you can acheive eq_ref by adding unique and not null to the index - $key used in $table table."
+      },
+      "index_merge": {
+        "impact": "caution",
+        "message": "Join uses list of indexes, keys used: $key.",
+        "suggestion": "Slow if the indexes are not well-chosen or if there are too many indexes being used."
+      },
+      "range": {
+        "impact": "caution",
+        "message": "Index used to find matching rows in specific range.",
+        "suggestion": "Please check the range it should not be too broad."
+      },
+      "index": {
+        "impact": "caution",
+        "message": "Entire index tree scanned to find matching rows.",
+        "suggestion": "Can be slow for large indexes(Your key length: $key_len), use carefully."
+      },
+      "ALL": {
+        "impact": "negative",
+        "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
+        "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements."
+      }
+    }
+  },
+  "rows": {
+    "description": "Estimated number of rows scanned to find matching rows.",
+    "value_type": "number",
+    "rules": {
+      "threshold": {
+        "amount": 100,
+        "impact": "negative",
+        "message": "$value rows are being scanned per join for $table table.",
+        "suggestion": "Please see if it is possible to use index from $possible_keys or add new one to $table table as per the requirements to reduce the number of rows scanned."
+      }
+    }
+  },
+  "possible_keys": {
+    "description": "Index keys possible for a specifc table",
+    "value_type": "array",
+    "delimiter": ",",
+    "rules": {
+      "absent": {
+        "impact": "negative",
+        "message": "There are no possible keys for $table table to be used, can result into full scan",
+        "suggestion": "Please add index keys for $table table"
+      },
+      "threshold": {
+        "amount": 5,
+        "impact": "negative",
+        "message": "There are $amount possible keys for $table table, having too many index keys can be unoptimal",
+        "suggestion": "Please check if there are extra indexes in $table table."
+      }
+    }
+  },
+  "key": {
+    "description": "",
+    "value_type": "string",
+    "rules": {
+      "absent": {
+        "impact": "negative",
+        "message": "There is no index key used for $table table, and can result into full scan of the $table table",
+        "suggestion": "Please use index from possible_keys: $possible_keys or add new one to $table table as per the requirements."
+      }
+    }
+  },
+  "key_len": {
+    "description": "Length of the key index used",
+    "value_type": "number",
+    "rules": {}
+  },
+  "filtered": {
+    "description": "Indicates percentage of rows appearing from the total.",
+    "value_type": "number",
+    "rules": {}
+  },
+  "extra": {
+    "description": "Additional information about the plan",
+    "value_type": "array",
+    "delimiter": ";",
+    "rules": {
+      "Using temporary": {
+        "impact": "",
+        "message": "",
+        "suggestion": ""
+      },
+      "Using filesort": {
+        "impact": "negative",
+        "message": "A file-based algorithm in being applied over your result, This can be inefficient and result into long query time.",
+        "suggestion": "Please ensure either result set is small or use proper index."
+      },
+      "Using join buffer": {
+        "impact": "",
+        "message": "",
+        "suggestion": ""
+      },
+      "Using index condition": {
+        "impact": "",
+        "message": "",
+        "suggestion": ""
+      }
+    }
+  },
+  "detailed#used_columns": {
+    "description": "",
+    "value_type": "array",
+    "rules": {
+      "threshold": {
+        "amount": 7,
+        "impact": "negative",
+        "message": "You have selected $amount columns, You should not select too many columns.",
+        "suggestion": "Please only select required columns."
+      }
+    }
+  },
+  "cardinality": {
+    "description": "",
+    "value_type": "number",
+    "rules": {
+      "threshold": {
+        "amount": 100,
+        "impact": "negative",
+        "message": "The cardinality of table is $amount, and its too high.",
+        "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins."
+      }
+    }
+  }
+}
