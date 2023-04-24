@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.summary = "This gem provides tools to analyze your queries based on custom rules."
   spec.homepage = "https://github.com/strikeraryu/query_police.git"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.3.0"
+  spec.required_ruby_version = ">= 2.4.1"
   spec.required_rubygems_version = ">= 1.3.6"
 
   spec.metadata["homepage_uri"] = spec.homepage
