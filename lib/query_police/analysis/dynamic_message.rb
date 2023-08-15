@@ -51,7 +51,16 @@ module QueryPolice
 
         impact = tables.dig(table, "analysis", column, "tags", tag, "impact")
 
-        opts.dig("colours").present? ? impact.send(IMPACTS[impact].colour) : impact
+        opts.dig("colours").present? ? impact.send(IMPACTS.dig(impact, "colour")) : impact
+      end
+
+      def score(opts)
+        table, column, tag = opts.values_at("table", "column", "tag")
+
+        impact = tables.dig(table, "analysis", column, "tags", tag, "impact")
+        score = tables.dig(table, "analysis", column, "tags", tag, "score")
+
+        opts.dig("colours").present? ? score.to_s.send(IMPACTS.dig(impact, "colour")) : score
       end
 
       def table(opts)

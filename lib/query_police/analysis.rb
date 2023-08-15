@@ -27,7 +27,8 @@ module QueryPolice
     #           "all" => {
     #             "impact"=>"negative",
     #             "warning"=>"warning to represent the issue",
-    #             "suggestions"=>"some follow up suggestions"
+    #             "suggestions"=>"some follow up suggestions",
+    #             "score"=>1
     #           }
     #         }
     #       }
@@ -54,10 +55,12 @@ module QueryPolice
     # register a table analysis in analysis object
     # @param name [String] name of the table
     # @param table_analysis [Hash] analysis of a table
+    # @param score [Integer] score for that table
     # Eg.
     #  {
     #    "id"=>1,
     #    "name"=>"users",
+    #    "score"=>1
     #    "analysis"=>{
     #      "type"=>[
     #        {
@@ -69,13 +72,14 @@ module QueryPolice
     #      ]
     #    }
     #  }
-    def register_table(name, table_analysis)
+    def register_table(name, table_analysis, score)
       self.table_count += 1
       tables.merge!(
         {
           name => {
             "id" => self.table_count,
             "name" => name,
+            "score" => score,
             "analysis" => table_analysis
           }
         }
@@ -93,6 +97,7 @@ module QueryPolice
     # @return [String] pretty analysis
     def pretty_analysis(opts)
       final_message = ""
+      opts = opts.with_indifferent_access
 
       opts.slice(*IMPACTS.keys).each do |impact, value|
         final_message += pretty_analysis_for(impact) if value.present?
@@ -105,15 +110,20 @@ module QueryPolice
     # @param impact [String]
     # @return [String] pretty analysis
     def pretty_analysis_for(impact)
-      final_message = ""
+      final_message = "query_score: #{query_score}\n"
 
-      tables.keys.each do |table|
+      tables.each_key do |table|
         table_message = table_pretty_analysis(table, { impact => true })
 
-        final_message += "table: #{table}\n#{table_message}\n" if table_message.present?
+        final_message += "#{table_message}\n" if table_message.present?
       end
 
       final_message
+    end
+
+    # to get the final score
+    def query_score
+      tables.map { |_, table| table.dig("score") }.sum
     end
 
     # to get analysis in pretty format with warnings and suggestions for a table
@@ -121,33 +131,47 @@ module QueryPolice
     # @param opts [Hash] - possible options [positive: <boolean>, negative: <boolean>, caution: <boolean>]
     # @return [String] pretty analysis
     def table_pretty_analysis(table, opts)
-      table_message = ""
+      table_analytics = Terminal::Table.new(title: table)
+      table_analytics.add_row(["table_score", tables.dig(table, "score")])
 
-      tables.dig(table, "analysis").each do |column, column_analysis|
-        tags_message = ""
-        column_analysis.dig("tags").each do |tag, tag_analysis|
-          next unless opts.dig(tag_analysis.dig("impact")).present?
+      opts = opts.with_indifferent_access
 
-          tags_message += tag_pretty_analysis(table, column, tag)
-        end
+      tables.dig(table, "analysis").each do |column, _|
+        column_analytics = column_analytic(table, column, opts)
+        next unless column_analytics.present?
 
-        table_message += "column: #{column}\n#{tags_message}" if tags_message.present?
+        table_analytics.add_separator
+        table_analytics.add_row(["column", column])
+        column_analytics.each { |row| table_analytics.add_row(row) }
       end
 
-      table_message
+      table_analytics
     end
 
     private
 
-    def tag_pretty_analysis(table, column, tag)
-      tag_message = ""
+    def column_analytic(table, column, opts)
+      column_analytics = []
+
+      tables.dig(table, "analysis", column, "tags").each do |tag, tag_analysis|
+        next unless opts.dig(tag_analysis.dig("impact")).present?
+
+        column_analytics += tag_analytic(table, column, tag)
+      end
+
+      column_analytics
+    end
+
+    def tag_analytic(table, column, tag)
+      tag_message = []
 
       opts = { "table" => table, "column" => column, "tag" => tag }
       message = dynamic_message(opts.merge({ "type" => "message" }))
       suggestion = dynamic_message(opts.merge({ "type" => "suggestion" }))
-      tag_message += "impact: #{impact(opts.merge({ "colours" => true }))}\n"
-      tag_message += "message: #{message}\n"
-      tag_message += "suggestion: #{suggestion}\n" if suggestion.present?
+      tag_message << ["impact", impact(opts.merge({ "colours" => true }))]
+      tag_message << ["tag_score", score(opts.merge({ "colours" => true }))]
+      tag_message << ["message", message]
+      tag_message << ["suggestion", suggestion] if suggestion.present?
 
       tag_message
     end

@@ -9,6 +9,15 @@ Style/StringLiteralsInInterpolation:
   Enabled: true
   EnforcedStyle: double_quotes
 
+Style/HashTransformKeys:
+  Enabled: true
+
+Style/HashTransformValues:
+  Enabled: true
+
+Style/HashEachMethods:
+ Enabled: true 
+
 Metrics/MethodLength:
   Max: 15
 

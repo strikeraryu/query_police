@@ -6,7 +6,11 @@
       "SIMPLE": {
         "impact": "positive",
         "message": "A simple query without subqueries or unions.",
-        "suggestion": ""
+        "suggestion": "",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       }
     }
   },
@@ -17,52 +21,92 @@
       "system": {
         "impact": "positive",
         "message": "Table has zero or one row, no change required.",
-        "suggestion": ""
+        "suggestion": "",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "const": {
         "impact": "positive",
         "message": "Table has only one indexed matching row, fastest join type.",
-        "suggestion": ""
+        "suggestion": "",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "eq_ref": {
         "impact": "positive",
         "message": "All index parts used in join and index is primary_key or unique not null.",
-        "suggestion": ""
+        "suggestion": "",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "ref": {
         "impact": "caution",
         "message": "All matching rows of an indexed column read for each combination of rows from previous table.",
-        "suggestion": "Ensure the referenced column is indexed and look for null values, dupilcates. Upgrade to eq_ref join type if possible.\nYou can acheive eq_ref by adding unique and not null to the index - $key used in $table table table."
+        "suggestion": "Ensure the referenced column is indexed and look for null values, dupilcates. Upgrade to eq_ref join type if possible.\nYou can acheive eq_ref by adding unique and not null to the index - $key used in $table table table.",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "fulltext": {
         "impact": "caution",
         "message": "Join uses table FULLTEXT index, index key used - $key.",
-        "suggestion": "Should only be used for text heavy columns."
+        "suggestion": "Should only be used for text heavy columns.",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "ref_or_null": {
         "impact": "caution",
         "message": "Using ref index with Null value in $table table.",
-        "suggestion": "Please check if you can upgrade to eq_ref, you can acheive eq_ref by adding unique and not null to the index - $key used in $table table."
+        "suggestion": "Please check if you can upgrade to eq_ref, you can acheive eq_ref by adding unique and not null to the index - $key used in $table table.",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "index_merge": {
         "impact": "caution",
         "message": "Join uses list of indexes, keys used: $key.",
-        "suggestion": "Slow if the indexes are not well-chosen or if there are too many indexes being used."
+        "suggestion": "Slow if the indexes are not well-chosen or if there are too many indexes being used.",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "range": {
         "impact": "caution",
         "message": "Index used to find matching rows in specific range.",
-        "suggestion": "Please check the range it should not be too broad."
+        "suggestion": "Please check the range it should not be too broad.",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "index": {
         "impact": "caution",
         "message": "Entire index tree scanned to find matching rows.",
-        "suggestion": "Can be slow for large indexes(Your key length: $key_len), use carefully."
+        "suggestion": "Can be slow for large indexes(Your key length: $key_len), use carefully.",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "ALL": {
         "impact": "negative",
         "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
-        "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements."
+        "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements.",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       }
     }
   },
@@ -125,12 +169,20 @@
       "Using temporary": {
         "impact": "",
         "message": "",
-        "suggestion": ""
+        "suggestion": "",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "Using filesort": {
         "impact": "negative",
         "message": "A file-based algorithm in being applied over your result, This can be inefficient and result into long query time.",
-        "suggestion": "Please ensure either result set is small or use proper index."
+        "suggestion": "Please ensure either result set is small or use proper index.",
+        "score": {
+          "value": 10,
+          "type": "base"
+        }
       },
       "Using join buffer": {
         "impact": "",
@@ -152,7 +204,11 @@
         "amount": 7,
         "impact": "negative",
         "message": "You have selected $amount columns, You should not select too many columns.",
-        "suggestion": "Please only select required columns."
+        "suggestion": "Please only select required columns.",
+        "score": {
+          "value": 10,
+          "type": "treshold_relative"
+        }
       }
     }
   },
@@ -164,7 +220,11 @@
         "amount": 100,
         "impact": "negative",
         "message": "The cardinality of table is $amount, and its too high.",
-        "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins."
+        "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins.",
+        "score": {
+          "value": 1,
+          "type": "treshold_relative"
+        }
       }
     }
   }
