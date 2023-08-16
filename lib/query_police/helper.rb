@@ -34,7 +34,20 @@ module QueryPolice
       JSON.parse(File.read(rules_path))
     end
 
-    module_function :flatten_hash, :logger, :load_config
+    def word_wrap(string, width = 100)
+      words = string.split
+      wrapped_string = " "
+
+      words.each do |word|
+        last_line_size = (wrapped_string.split("\n")[-1]&.size || 0)
+        wrapped_string = wrapped_string.strip + "\n" if (last_line_size + word.size) > width
+        wrapped_string += "#{word} "
+      end
+
+      wrapped_string.strip
+    end
+
+    module_function :flatten_hash, :logger, :load_config, :word_wrap
   end
 
   private_constant :Helper
