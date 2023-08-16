@@ -37,7 +37,7 @@ module QueryPolice
       private
 
       def add_summary(summary, column_name, value)
-        summary["cardinality"] = (summary.dig("cardinality") || 1) + value.to_f if column_name.eql?("rows")
+        summary["cardinality"] = (summary.dig("cardinality") || 1) * value.to_f if column_name.eql?("rows")
 
         summary
       end
