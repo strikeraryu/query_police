@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "analysis/dynamic_message"
+require_relative "helper"
 
 module QueryPolice
   # This class is used to store analysis of a query and provide methods over them
@@ -190,8 +191,8 @@ module QueryPolice
       suggestion = dynamic_message(opts.merge({ "type" => "suggestion" }))
       tag_message << ["impact", impact(opts.merge({ "colours" => true }))]
       tag_message << ["tag_score", score(opts.merge({ "colours" => true }))]
-      tag_message << ["message", message]
-      tag_message << ["suggestion", suggestion] if suggestion.present?
+      tag_message << ["message", Helper.word_wrap(message)]
+      tag_message << ["suggestion", Helper.word_wrap(suggestion)] if suggestion.present?
 
       tag_message
     end
