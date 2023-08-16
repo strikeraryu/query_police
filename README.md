@@ -4,11 +4,11 @@ It is a rule-based engine with custom rules to Analyze Active-Record relations u
 
 ## Installation
 
-Install the gem and add to the application's Gemfile by executing:
+Install the gem and add it to the application's Gemfile by executing:
 
     $ bundle add query_police
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+If the bundler is not being used to manage dependencies, install the gem by executing:
 
     $ gem install query_police
 
@@ -28,8 +28,7 @@ puts analysis.pretty_analysis_for(<impact>)
 **Eg.** 
 ```
 analysis = QueryPolice.analyse(
-  User.joins('join sessions on sessions.user_email = users.email ')
-  .where('sessions.created_at < ?', Time.now - 5.months).order('sessions.created_at')
+  User.joins('join orders on orders.user_id = users.id')
 )
 puts analysis.pretty_analysis_for('negative')
 # or
@@ -38,22 +37,45 @@ puts analysis.pretty_analysis({'negative' => true, 'positive' => true})
 **Results**
 
 ```
-table: sessions
-column: type
-impact: negative
-message: Entire sessions table is scanned to find matching rows, you have 1 possible keys to use.
-suggestion: Use index here. You can use index from possible key: ["index_sessions_on_user_email"] or add new one to sessions table as per the requirements.
-column: key
-impact: negative
-message: There is no index key used for sessions table, and can result into full scan of the sessions table
-suggestion: Please use index from possible_keys: ["index_sessions_on_user_email"] or add new one to sessions table as per the requirements.
-column: rows
-impact: negative
-message: 2982924 rows are being scanned per join for sessions table.
-suggestion: Please see if it is possible to use index from ["index_sessions_on_user_email"] or add new one to sessions table as per the requirements to reduce the number of rows scanned.
+query_score: 330.0
+
++----------------------------------------------------------------------------------------------------------------------------------+
+|                                                              orders                                                              |
++------------+---------------------------------------------------------------------------------------------------------------------+
+| score      | 200.0                                                                                                               |
++------------+---------------------------------------------------------------------------------------------------------------------+
+| column     | type                                                                                                                |
+| impact     | negative                                                                                                            |
+| tag_score  | 100.0                                                                                                               |
+| message    | Entire orders table is scanned to find matching rows, you have 0 possible keys to use.                              |
+| suggestion | Use index here. You can use index from possible key: absent or add new one to orders table as per the requirements. |
++------------+---------------------------------------------------------------------------------------------------------------------+
+| column     | possible_keys                                                                                                       |
+| impact     | negative                                                                                                            |
+| tag_score  | 50.0                                                                                                                |
+| message    | There are no possible keys for orders table to be used, can result into full scan                                   |
+| suggestion | Please add index keys for orders table                                                                              |
++------------+---------------------------------------------------------------------------------------------------------------------+
+| column     | key                                                                                                                 |
+| impact     | negative                                                                                                            |
+| tag_score  | 50.0                                                                                                                |
+| message    | There is no index key used for orders table, and can result into full scan of the orders table                      |
+| suggestion | Please use index from possible_keys: absent or add new one to orders table as per the requirements.                 |
++------------+---------------------------------------------------------------------------------------------------------------------+
++------------------------------------------------------------------------------------+
+|                                       users                                        |
++------------+-----------------------------------------------------------------------+
+| score      | 130.0                                                                 |
++------------+-----------------------------------------------------------------------+
+| column     | detailed#used_columns                                                 |
+| impact     | negative                                                              |
+| tag_score  | 130.0                                                                 |
+| message    | You have selected 18 columns, You should not select too many columns. |
+| suggestion | Please only select required columns.                                  |
++------------+-----------------------------------------------------------------------+
 ```
 
-### Add logger for every query
+### Add a logger for every query
 
 Add `QueryPolice.subscribe_logger` to your initial load file like `application.rb`
 
@@ -61,24 +83,24 @@ You can make logger silence of error using `QueryPolice.subscribe_logger silent:
 
 You can change logger config using `QueryPolice logger_config: <config>`, default logger_config `{'negative' => true}`, options `positive: <Boolean>, caution: <Boolean>`.
 
-
+---
 
 ## How it works?
 
-1. Query police converts the relation into sql query
+1. Query police converts the relation into SQL query
 
-2. Query police generates execution plan using EXPLAIN and EXPLAIN format=JSON based on the configuration.
+2. Query police generates an execution plan using EXPLAIN and EXPLAIN format=JSON based on the configuration.
 
 3. Query police load rules from the config file.
 
 4. Query police apply rules on the execution plan and generate a new analysis object.
 
-5. Analysis object provide different methods to print the analysis in more descriptive format.
+5. Analysis object provides different methods to print the analysis in a more descriptive format.
 
 
 ## Execution plan
 
-We have 2 possible execution plan:-
+We have 2 possible execution plans:-
 
 Normal - using `EXPLAIN`
 
@@ -98,7 +120,7 @@ Generated using `EXPAIN <query>`
 |  1 | SIMPLE      | users   | NULL       | eq_ref | PRIMARY,index_users_on_id | PRIMARY             | 4       | development.profile.user_id |1     |  100.00  | NULL                     |
 
 
-Result for this is added as it is in the final execution plan
+The result for this is added as it is in the final execution plan
 
 **Eg.**
 
@@ -172,7 +194,7 @@ Generated using `EXPAIN format=JSON <query>`
 ```
 
 
-Result for this is added in flatten form to final execution plan, where `detailed#` prefix is added before each key.
+The result for this is added in the flattened form to the final execution plan, where the `detailed#` prefix is added before each key.
 
 **Truncated Eg.**
 
@@ -200,11 +222,9 @@ Result for this is added in flatten form to final execution plan, where `detaile
 
 ## Analysis object
 
-Analysis object stores a detailed analysis report of a relation inside `:tables :table_count :summary attributes`.
+Analysis object stores a detailed analysis report of a relation inside `:tables :summary attributes`.
 
 #### Attributes
-
-**table_count [Integer]  - No. Tables used in the relation**
 
 **tables [Hash] - detailed table analysis**
 
@@ -212,15 +232,17 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
 {
   'users' => {                        
     'id'=>1,                    
-    'name'=>'users',                 # table alias user in the execution plan
-    'analysis'=>{
-      'type'=>{                      # attribute name
+    'name' => 'users',               # table alias user in the execution plan
+    'score' => <float>               # score for the table   
+    'analysis' => {
+      'type' => {                    # attribute name
         'value' => <string>,         # raw value of attribute in execution plan
         'tags' => {
           'all' => {                 # tag based on the value of a attribute
             'impact'=> <string>,     # negative, positive, cautions
             'warning'=> <string>,    # Eg. 'warning to represent the issue'
-            'suggestions'=> <string> # Eg. 'some follow up suggestions'
+            'suggestions'=> <string> # Eg. 'some follow-up suggestions'
+            'score' => <float>       # score for the tag
           }
         }
       }
@@ -232,10 +254,11 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
 
 ```
 {
-  'cardinality'=>{
-    'amount'=>10,
-    'warning'=>'warning to represent the issue',
-    'suggestions'=>'some follow up suggestions'
+  'cardinality' => {
+    'amount' => 10,
+    'warning' => 'warning to represent the issue',
+    'suggestions' => 'some follow up suggestions',
+    'score' => 100.0
   }
 }
 ```
@@ -261,7 +284,11 @@ A basic rule structure -
       "amount": <integer>
       "impact": <string>,
       "message": <string>,
-      "suggestion": <string> 
+      "suggestion": <string>,
+      "score": {
+        "value": <integer>,
+        "type": <string>
+      } 
     }
   }
 }
@@ -278,19 +305,19 @@ A basic rule structure -
 
     - `<tag>` - direct value match eg. ALL, SIMPLE
 
-    - `absent` - when value is missing
+    - `absent` - when the value is missing
 
     - `threshold` - a greater than threshold check based on the amount set inside the rule.
 
-- `amount` - amount of threshold need to check for 
+- `amount` - the amount of threshold that needs to check for 
 
     - length for string
 
     - value for number
 
-    - size for array
+    - size for the array
 
-- `impact` - impact for the rule
+- `impact` - impact of the rule
 
     - `negative`
 
@@ -298,23 +325,29 @@ A basic rule structure -
 
     - `caution`
 
-- `message` - message need to provide the significance of the rule
+- `message` - the message needs to provide the significance of the rule
 
 - `suggestion` - suggestion on how we can fix the issue
+- `score` - score-related config that will be affected to final query score
+    - `value` - value that will be added to the query score 
+    -  `type` - the type of scoring that will be added to the query score
+        - `base`- value
+        - `relative` - value * (amount for that column in query)
+        - `treshold_relative` - (value - (threshold amount)) * (amount for that column in query)
 
 
 
 ### Dynamic messages and suggestion
 
-We can define dynamic messages and suggestion with variables provided by the engine.
+We can define dynamic messages and suggestions with variables provided by the engine.
 
-- `$amount` - amount of the value 
+- `$amount` - the amount of the value 
 
     - length for string
 
     - value for number
 
-    - size for array
+    - size for the array
 
 - `$column` - attribute name
 
@@ -326,7 +359,7 @@ We can define dynamic messages and suggestion with variables provided by the eng
 
 - `$value` - original parsed value
 
-- `$<column_name>` - value of that specific column in that table
+- `$<column_name>` - the value of that specific column in that table
 
 - `$amount_<column_name>` - amount of that specific column
 
@@ -349,15 +382,19 @@ We can define dynamic messages and suggestion with variables provided by the eng
     "ALL": {
       "impact": "negative",
       "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
-      "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements."
+      "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements.",
+      "score": {
+        "value": 200,
+        "type": "base" 
+      }
     }
 }
 ```
-For above rule dynamic message will be generated as-
+For the above rule, dynamic message will be generated as-
 ```
 Entire users table is scanned to find matching rows, you have 1 possible keys to use
 ```
-For above rule dynamic suggestion will be generated as-
+For the above rule, dynamic suggestion will be generated as-
 ```
 Use index here. You can use index from possible key: ["PRIMARY", "user_email"] or add new one to users table as per the requirements.
 ```
@@ -379,11 +416,11 @@ Use index here. You can use index from possible key: ["PRIMARY", "user_email"] o
 }
 ```
 
-For above rule dynamic message will be generated as-
+For the above rule, dynamic message will be generated as-
 ```
 There is no index key used for users table, and can result into full scan of the users table
 ```
-For above rule dynamic suggestion will be generated as-
+For the above rule, dynamic suggestion will be generated as-
 ```
 Please use index from possible_keys: ["PRIMARY", "user_email"] or add new one to users table as per the requirements.
 ```
@@ -406,11 +443,11 @@ Please use index from possible_keys: ["PRIMARY", "user_email"] or add new one to
   }
 }
 ```
-For above rule dynamic message will be generated as-
+For the above rule, dynamic message will be generated as-
 ```
 There are 10 possible keys for users table, having too many index keys can be unoptimal
 ```
-For above rule dynamic suggestion will be generated as-
+For the above rule, dynamic suggestion will be generated as-
 ```
 Please check if there are extra indexes in users table.
 ```
@@ -427,16 +464,20 @@ Please check if there are extra indexes in users table.
       "amount": 7,
       "impact": "negative",
       "message": "You have selected $amount columns, You should not select too many columns.",
-      "suggestion": "Please only select required columns." 
+      "suggestion": "Please only select required columns.",
+      "score": {
+        "value": 10,
+        "type": "treshold_relative" 
+      }
     }
   }
 }
 ```
-For above rule dynamic message will be generated as-
+For the above rule, dynamic message will be generated as-
 ```
 You have selected 10 columns, You should not select too many columns.
 ```
-For above rule dynamic suggestion will be generated as-
+For the above rule, dynamic suggestions will be generated as-
 ```
 Please only select required columns.
 ```
@@ -444,24 +485,24 @@ Please only select required columns.
 
 ### Summary
 
-You can define similar rules for summary. Current summary attribute supported - 
+You can define similar rules for the summary. Current summary attribute supported - 
 
-- `cardinality` - cardinality based on the all tables
+- `cardinality` - cardinality based on all tables
 
-**NOTE:** You can add custom summary attributes by defining how to calculate them in `QueryPolice.add_summary` for a attribute key.
+**NOTE:** You can add custom summary attributes by defining how to calculate them in `QueryPolice.add_summary` for an attribute key.
 
 
 
 ### Attributes
 
-There all lot of attributes for you to use based on the final execution plan. 
+There are a lot of attributes for you to use based on the final execution plan. 
 
-You can use normal execution plan attribute directly.
+You can use the normal execution plan attribute directly.
 Eg. `select_type, type, Extra, possible_keys`
 
 To check more keys you can use `EXPLAIN <query>`
 
-You can use detailed execution plan attribute can be used in flatten form with `detailed#` prefix.
+You can use the detailed execution plan attribute can be used in flattened form with the `detailed#` prefix.
 Eg. `detailed#used_columns, detailed#cost_info#read_cost`
 
 To check more keys you can use `EXPLAIN format=JSON <query>`
@@ -484,4 +525,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the QueryPolice project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/query_police/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the QueryPolice project's codebases, issue trackers, chat rooms, and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/query_police/blob/master/CODE_OF_CONDUCT.md).

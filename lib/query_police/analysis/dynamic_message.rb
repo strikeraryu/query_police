@@ -14,13 +14,13 @@ module QueryPolice
       # @return [String]
       def dynamic_message(opts)
         table, column, tag, type = opts.values_at("table", "column", "tag", "type")
-        message = tables.dig(table, "analysis", column, "tags", tag, type) || ""
+        message = query_analytic.dig(table, "analysis", column, "tags", tag, type) || ""
 
         variables = message.scan(/\$(\w+)/).uniq.map { |var| var[0] }
         variables.each do |var|
           value = dynamic_value_of(var, opts)
 
-          message.gsub!(/\$#{var}/, value.to_s) if value.present?
+          message = message.gsub(/\$#{var}/, value.to_s) unless value.nil?
         end
 
         message
@@ -32,14 +32,14 @@ module QueryPolice
 
       def relative_value_of(var, table)
         value_type = var.match(/amount_/).present? ? "amount" : "value"
-        tables.dig(table, "analysis", var.gsub(/amount_/, ""), value_type)
+        query_analytic.dig(table, "analysis", var.gsub(/amount_/, ""), value_type)
       end
 
       # dynamic variable methods
       def amount(opts)
         table, column = opts.values_at("table", "column")
 
-        tables.dig(table, "analysis", column, "amount")
+        query_analytic.dig(table, "analysis", column, "amount")
       end
 
       def column(opts)
@@ -49,9 +49,18 @@ module QueryPolice
       def impact(opts)
         table, column, tag = opts.values_at("table", "column", "tag")
 
-        impact = tables.dig(table, "analysis", column, "tags", tag, "impact")
+        impact = query_analytic.dig(table, "analysis", column, "tags", tag, "impact")
 
-        opts.dig("colours").present? ? impact.send(IMPACTS[impact].colour) : impact
+        opts.dig("colours").present? ? impact.send(IMPACTS.dig(impact, "colour")) : impact
+      end
+
+      def score(opts)
+        table, column, tag = opts.values_at("table", "column", "tag")
+
+        impact = query_analytic.dig(table, "analysis", column, "tags", tag, "impact")
+        score = query_analytic.dig(table, "analysis", column, "tags", tag, "score")
+
+        opts.dig("colours").present? ? score.to_s.send(IMPACTS.dig(impact, "colour")) : score
       end
 
       def table(opts)
@@ -65,7 +74,7 @@ module QueryPolice
       def value(opts)
         table, column = opts.values_at("table", "column")
 
-        tables.dig(table, "analysis", column, "value")
+        query_analytic.dig(table, "analysis", column, "value")
       end
     end
   end

@@ -62,7 +62,11 @@
       "ALL": {
         "impact": "negative",
         "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
-        "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements."
+        "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements.",
+        "score": {
+          "value": 100,
+          "type": "base"
+        }
       }
     }
   },
@@ -86,13 +90,21 @@
       "absent": {
         "impact": "negative",
         "message": "There are no possible keys for $table table to be used, can result into full scan",
-        "suggestion": "Please add index keys for $table table"
+        "suggestion": "Please add index keys for $table table",
+        "score": {
+          "value": 50,
+          "type": "base"
+        }
       },
       "threshold": {
         "amount": 5,
         "impact": "negative",
         "message": "There are $amount possible keys for $table table, having too many index keys can be unoptimal",
-        "suggestion": "Please check if there are extra indexes in $table table."
+        "suggestion": "Please check if there are extra indexes in $table table.",
+        "score": {
+          "value": 20,
+          "type": "treshold_relative"
+        }
       }
     }
   },
@@ -103,7 +115,11 @@
       "absent": {
         "impact": "negative",
         "message": "There is no index key used for $table table, and can result into full scan of the $table table",
-        "suggestion": "Please use index from possible_keys: $possible_keys or add new one to $table table as per the requirements."
+        "suggestion": "Please use index from possible_keys: $possible_keys or add new one to $table table as per the requirements.",
+        "score": {
+          "value": 50,
+          "type": "base"
+        }
       }
     }
   },
@@ -122,15 +138,14 @@
     "value_type": "array",
     "delimiter": ";",
     "rules": {
-      "Using temporary": {
-        "impact": "",
-        "message": "",
-        "suggestion": ""
-      },
       "Using filesort": {
         "impact": "negative",
         "message": "A file-based algorithm in being applied over your result, This can be inefficient and result into long query time.",
-        "suggestion": "Please ensure either result set is small or use proper index."
+        "suggestion": "Please ensure either result set is small or use proper index.",
+        "score": {
+          "value": 50,
+          "type": "base"
+        }
       },
       "Using join buffer": {
         "impact": "",
@@ -145,26 +160,50 @@
     }
   },
   "detailed#used_columns": {
-    "description": "",
+    "description": "number of column used to execute the query",
     "value_type": "array",
     "rules": {
       "threshold": {
-        "amount": 7,
+        "amount": 5,
         "impact": "negative",
         "message": "You have selected $amount columns, You should not select too many columns.",
-        "suggestion": "Please only select required columns."
+        "suggestion": "Please only select required columns.",
+        "score": {
+          "value": 10,
+          "type": "treshold_relative"
+        }
       }
     }
   },
-  "cardinality": {
-    "description": "",
+  "detailed#cost_info#read_cost ": {
+    "description": "read cost to execute the query",
     "value_type": "number",
     "rules": {
       "threshold": {
         "amount": 100,
         "impact": "negative",
+        "message": "The read cost of query is to high, most likely you are scanning to many rows",
+        "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins.",
+        "score": {
+          "value": 0.01,
+          "type": "relative"
+        }
+      }
+    }
+  },
+  "cardinality": {
+    "description": "total cardinality of the query",
+    "value_type": "number",
+    "rules": {
+      "threshold": {
+        "amount": 500,
+        "impact": "negative",
         "message": "The cardinality of table is $amount, and its too high.",
-        "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins."
+        "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins.",
+        "score": {
+          "value": 0.01,
+          "type": "relative"
+        }
       }
     }
   }
