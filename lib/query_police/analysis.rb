@@ -18,17 +18,18 @@ module QueryPolice
     # Eg.
     # {
     #   "users" => {
-    #     "id"=>1,
-    #     "name"=>"users",
-    #     "analysis"=>{
-    #       "type"=>{
-    #         "value" => "all",
+    #     "id" => 1,
+    #     "name" => "users",
+    #     "score" => 100.0,
+    #     "analysis" => {
+    #       "type" => {
+    #         "value" => all",
     #         "tags" => {
     #           "all" => {
-    #             "impact"=>"negative",
-    #             "warning"=>"warning to represent the issue",
-    #             "suggestions"=>"some follow up suggestions",
-    #             "score"=>1
+    #             "impact" => "negative",
+    #             "warning" => "warning to represent the issue",
+    #             "suggestions" => "some follow up suggestions",
+    #             "score" => 100.0
     #           }
     #         }
     #       }
@@ -38,10 +39,11 @@ module QueryPolice
     # summary [Hash] hash of analysis summary
     # Eg.
     #  {
-    #    "cardinality"=>{
-    #      "amount"=>10,
-    #      "warning"=>"warning to represent the issue",
-    #      "suggestions"=>"some follow up suggestions"
+    #    "cardinality" => {
+    #      "amount" => 10,
+    #      "warning" => "warning to represent the issue",
+    #      "suggestions" => "some follow up suggestions",
+    #      "score" => 100.0
     #    }
     #  }
     def initialize
@@ -60,16 +62,17 @@ module QueryPolice
     # @param score [Integer] score for that table
     # Eg.
     #  {
-    #    "id"=>1,
-    #    "name"=>"users",
-    #    "score"=>1
-    #    "analysis"=>{
-    #      "type"=>[
+    #    "id" => 1,
+    #    "name" => "users",
+    #    "score" => 100.0
+    #    "analysis" => {
+    #      "type" => [
     #        {
-    #          "tag"=>"all",
-    #          "impact"=>"negative",
-    #          "warning"=>"warning to represent the issue",
-    #          "suggestions"=>"some follow up suggestions"
+    #          "tag" => "all",
+    #          "impact" => "negative",
+    #          "warning" => "warning to represent the issue",
+    #          "suggestions" => "some follow up suggestions",
+    #          "score" => 100.0
     #        }
     #      ]
     #    }
@@ -115,7 +118,7 @@ module QueryPolice
     # @param impact [String]
     # @return [String] pretty analysis
     def pretty_analysis_for(impact)
-      final_message = "query_score: #{query_score}\n"
+      final_message = "query_score: #{query_score}\n\n"
 
       query_analytic.each_key do |table|
         table_message = query_pretty_analysis(table, { impact => true })
@@ -137,6 +140,7 @@ module QueryPolice
     # @return [String] pretty analysis
     def query_pretty_analysis(table, opts)
       table_analytics = Terminal::Table.new(title: table)
+      table_analytics_present = false
       table_analytics.add_row(["score", query_analytic.dig(table, "score")])
 
       opts = opts.with_indifferent_access
@@ -145,12 +149,13 @@ module QueryPolice
         column_analytics = column_analytic(table, column, opts)
         next unless column_analytics.present?
 
+        table_analytics_present = true
         table_analytics.add_separator
         table_analytics.add_row(["column", column])
         column_analytics.each { |row| table_analytics.add_row(row) }
       end
 
-      table_analytics
+      table_analytics_present ? table_analytics : nil
     end
 
     private
