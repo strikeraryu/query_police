@@ -16,21 +16,21 @@ module QueryPolice
         table_score += table_analysis.dig(column, "tags").map { |_, tag| tag.dig("score") }.sum.to_f
       end
 
-      summary["score"] = (summary.dig("score") || 0) + table_score.to_f
-
       [table_analysis, summary, table_score]
     end
 
-    def generate_summary_analysis(rules_config, summary)
+    def generate_summary(rules_config, summary)
       summary_analysis = {}
+      summary_score = 0
 
       summary.each do |column, value|
         next unless rules_config.dig(column).present?
 
         summary_analysis.merge!({ column => apply_rules(rules_config.dig(column), value) })
+        summary_score += summary_analysis.dig(column, "tags").map { |_, tag| tag.dig("score") }.sum.to_f
       end
 
-      summary_analysis
+      [summary_analysis, summary_score]
     end
 
     class << self
@@ -93,7 +93,7 @@ module QueryPolice
       end
     end
 
-    module_function :table, :generate_summary_analysis
+    module_function :table, :generate_summary
   end
 
   private_constant :Analyse

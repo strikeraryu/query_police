@@ -49,7 +49,7 @@ module QueryPolice
       analysis.register_table(table.dig("table"), table_analysis, table_score)
     end
 
-    analysis.register_summary(Analyse.generate_summary_analysis(rules_config, summary))
+    analysis.register_summary(*Analyse.generate_summary(rules_config, summary))
 
     analysis
   end
