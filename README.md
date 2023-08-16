@@ -20,16 +20,21 @@ If the bundler is not being used to manage dependencies, install the gem by exec
 
 Use `QueryPolice.analyse` to generate an analysis object for your Active-Record relation or query and then you can use pretty print on the object.
 
-```
+```ruby
 analysis = QueryPolice.analyse(<active_record_relation>)
 puts analysis.pretty_analysis_for(<impact>)
 ```
 
 **Eg.** 
-```
+```ruby
 analysis = QueryPolice.analyse(
-  User.joins('join orders on orders.user_id = users.id')
+  User.joins('join orders on orders.user_id = users.id') # analyse query using active record relation
 )
+# or
+analysis = QueryPolice.analyse(
+  "select * from users join orders on orders.user_id = users.id" # analyse query using query string
+)
+
 puts analysis.pretty_analysis_for('negative')
 # or
 puts analysis.pretty_analysis({'negative' => true, 'positive' => true})
@@ -75,13 +80,104 @@ query_score: 330.0
 +------------+-----------------------------------------------------------------------+
 ```
 
-### Add a logger for every query
+###  Impact 
 
-Add `QueryPolice.subscribe_logger` to your initial load file like `application.rb`
+To print pretty analysis for different impacts
+```ruby
+analysis = QueryPolice.analyse("select * from users")
+puts analysis.pretty_analysis_for('positive') # impact negative, positive, caution
 
-You can make logger silence of error using `QueryPolice.subscribe_logger silent: true`.
+# puts
+# +----------------------------------------------------------+         
+# |                          users                           |         
+# +-----------+----------------------------------------------+         
+# | score     | 330.0                                        |         
+# +-----------+----------------------------------------------+         
+# | column    | select_type                                  |
+# | impact    | positive                                     |
+# | tag_score | 0                                            |
+# | message   | A simple query without subqueries or unions. |
+# +-----------+----------------------------------------------+
+```
 
-You can change logger config using `QueryPolice logger_config: <config>`, default logger_config `{'negative' => true}`, options `positive: <Boolean>, caution: <Boolean>`.
+### Multiple Impact
+
+To print pretty analysis for multiple impacts
+```ruby
+analysis = QueryPolice.analyse("select * from users")
+puts analysis.pretty_analysis({'negative' => true, 'positive' => true})
+```
+
+### Query score
+
+To get the final score of the query
+```ruby
+analysis = QueryPolice.analyse("select * from users")
+puts analysis.query_score
+
+# puts
+# 100.0
+```
+
+### Word wrap
+
+To change the word wrap width for the pretty analysis result
+```ruby
+analysis = QueryPolice.analyse("select * from users")
+puts analysis.pretty_analysis_for('positive', {'wrap_width' => 40})
+# or
+puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 40})
+
+# puts
+# +--------------------------------------------------+                                                  
+# |                      users                       |                                                  
+# +-----------+--------------------------------------+                                                  
+# | score     | 330.0                                |                                                  
+# +-----------+--------------------------------------+                                                  
+# | column    | select_type                          |                                                  
+# | impact    | positive                             |                                                  
+# | tag_score | 0                                    |                                                  
+# | message   | A simple query without subqueries or |                                                  
+# |           | unions.                              |
+# +-----------+--------------------------------------+
+```
+
+### Custom rules path
+
+To define custom rules path (check below on how to define custom rules)
+```ruby
+QueryPolice.rule_path = 'path/to/rules/file'
+```
+
+### Detailed explain
+
+By default detailed explain is added in the analysis, to turn off
+```ruby
+QueryPolice.detailed = false
+```
+
+### Logger
+
+Add the following line to your initial load file like `application.rb`
+```ruby
+QueryPolice.subscribe_logger
+```
+
+### Silent logger
+
+To make the logger silent for errors 
+```ruby
+QueryPolice.subscribe_logger silent: true
+```
+
+### Logger config
+
+To change the logger config
+```ruby
+QueryPolice.subscribe_logger logger_config: {'negative' => true}
+# default logger_config: {'negative' => true}
+# options negative: <Boolean>, positive: <Boolean>, caution: <Boolean>, wrap_width: <Integer>
+```
 
 ---
 
@@ -219,6 +315,7 @@ The result for this is added in the flattened form to the final execution plan, 
 
 `{a: {b: 1}, c: 2}` is converted into `{a#b: 1, c: 2}`.
 
+---
 
 ## Analysis object
 
@@ -263,7 +360,7 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
 }
 ```
 
-
+---
 
 ## How to define rules?
 

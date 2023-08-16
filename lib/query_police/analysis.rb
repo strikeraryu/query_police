@@ -130,7 +130,7 @@ module QueryPolice
     #   wrap_width: <integer>
     # ]
     # @return [String] pretty analysis
-    def pretty_analysis_for(impact, opts)
+    def pretty_analysis_for(impact, opts = {})
       final_message = "query_score: #{query_score}\n\n"
 
       query_analytic.each_key do |table|
