@@ -20,7 +20,7 @@ module QueryPolice
         variables.each do |var|
           value = dynamic_value_of(var, opts)
 
-          message.gsub!(/\$#{var}/, value.to_s) if value.present?
+          message = message.gsub(/\$#{var}/, value.to_s) if value.present?
         end
 
         message
