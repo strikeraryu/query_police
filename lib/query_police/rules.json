@@ -182,7 +182,7 @@
       "threshold": {
         "amount": 100,
         "impact": "negative",
-        "message": "The read cost of query is to high, most likely you are scanning to many rows",
+        "message": "The read cost of query is $amount, and its too high. Most likely you are scanning to many rows.",
         "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins.",
         "score": {
           "value": 0.01,
