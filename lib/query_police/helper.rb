@@ -4,6 +4,8 @@
 module QueryPolice
   # This module define helper methods for query police
   module Helper
+    DEFAULT_WORD_WRAP_WIDTH = 100
+
     def flatten_hash(hash, prefix_key = "")
       flat_hash = {}
 
@@ -34,9 +36,10 @@ module QueryPolice
       JSON.parse(File.read(rules_path))
     end
 
-    def word_wrap(string, width = 100)
+    def word_wrap(string, width = DEFAULT_WORD_WRAP_WIDTH)
+      width ||= DEFAULT_WORD_WRAP_WIDTH
       words = string.split
-      wrapped_string = " "
+      wrapped_string = ""
 
       words.each do |word|
         last_line_size = (wrapped_string.split("\n")[-1]&.size || 0)
