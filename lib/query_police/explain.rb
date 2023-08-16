@@ -59,6 +59,8 @@ module QueryPolice
 
       def parse_detailed_explain(explain_result)
         parsed_result = JSON.parse(explain_result&.first&.first || "{}").dig("query_block")
+        parsed_result = parsed_result.dig("ordering_operation") || parsed_result
+        parsed_result = parsed_result.dig("grouping_operation") || parsed_result
         return parsed_result.dig("nested_loop").map { |e| e.dig("table") } if parsed_result.key?("nested_loop")
 
         parsed_result.key?("table") ? [parsed_result.dig("table")] : []

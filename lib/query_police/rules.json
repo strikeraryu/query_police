@@ -175,7 +175,7 @@
       }
     }
   },
-  "detailed#cost_info#read_cost ": {
+  "detailed#cost_info#read_cost": {
     "description": "read cost to execute the query",
     "value_type": "number",
     "rules": {
