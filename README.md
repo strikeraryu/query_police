@@ -129,17 +129,35 @@ puts analysis.pretty_analysis_for('positive', {'wrap_width' => 40})
 puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 40})
 
 # puts
-# +--------------------------------------------------+                                                  
-# |                      users                       |                                                  
-# +-----------+--------------------------------------+                                                  
-# | score     | 330.0                                |                                                  
-# +-----------+--------------------------------------+                                                  
-# | column    | select_type                          |                                                  
-# | impact    | positive                             |                                                  
-# | tag_score | 0                                    |                                                  
-# | message   | A simple query without subqueries or |                                                  
+# +--------------------------------------------------+
+# |                      users                       |
+# +-----------+--------------------------------------+
+# | score     | 330.0                                |
+# +-----------+--------------------------------------+
+# | column    | select_type                          |
+# | impact    | positive                             |
+# | tag_score | 0                                    |
+# | message   | A simple query without subqueries or |
 # |           | unions.                              |
 # +-----------+--------------------------------------+
+
+puts analysis.pretty_analysis_for('positive', {'wrap_width' => 20})
+# or
+puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 20})
+
+# puts
+# +--------------------------------+
+# |             users              |
+# +-----------+--------------------+
+# | score     | 330.0              |
+# +-----------+--------------------+
+# | column    | select_type        |
+# | impact    | positive           |
+# | tag_score | 0                  |
+# | message   | A simple query     |
+# |           | without subqueries |
+# |           | or unions.         |
+# +-----------+--------------------+
 ```
 
 ### Custom rules path
