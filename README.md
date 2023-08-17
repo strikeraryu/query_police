@@ -199,7 +199,223 @@ QueryPolice.subscribe_logger logger_config: {'negative' => true}
 
 ---
 
-## How it works?
+## How to define custom rules?
+
+Rules defined in the json file at rules_path is applied to the execution plan. Query Police have variety of option to define rules.
+
+You can change this by `QueryPolice.rules_path=<path>` and define your own rules
+
+### Rule Structure
+**Note:** Check Query Police default rules defined at [rules.json](https://github.com/strikeraryu/query_police/blob/master/lib/query_police/rules.json) for better clarity.
+
+A basic rule structure - 
+```
+"<column_name>": { 
+  "description": <string>,
+  "value_type": <string>,
+  "delimiter": <string>, 
+  "rules": {
+    "<rule>": {
+      "amount": <integer>
+      "impact": <string>,
+      "message": <string>,
+      "suggestion": <string>,
+      "score": {
+        "value": <integer>,
+        "type": <string>
+      } 
+    }
+  }
+}
+```
+- `<column_name>` - attribute name in the final execution plan.
+- `description` - description of the attribute
+- `value_type` - value type of the attribute
+- `delimiter` - delimiter to parse array type attribute values, if no delimiter is passed engine will consider value is already in array form.
+- `<rule>` - kind of rule for the attribute
+    - `<tag>` - direct value match eg. ALL, SIMPLE
+    - `absent` - when the value is missing
+    - `threshold` - a greater than threshold check based on the amount set inside the rule.
+- `amount` - the amount of threshold that needs to check for 
+    - length for string
+    - value for number
+    - size for the array
+- `impact` - impact of the rule
+    - `negative`
+    - `postive`
+    - `caution`
+- `message` - the message needs to provide the significance of the rule
+- `suggestion` - suggestion on how we can fix the issue
+- `score` - score-related config that will be affected to final query score
+    - `value` - value that will be added to the query score 
+    -  `type` - the type of scoring that will be added to the query score
+        - `base`- value
+        - `relative` - value * (amount for that column in query)
+        - `treshold_relative` - (value - (threshold amount)) * (amount for that column in query)
+
+
+
+### Dynamic messages and suggestion
+
+We can define dynamic messages and suggestions with variables provided by the engine.
+
+- `$amount` - the amount of the value 
+    - length for string
+    - value for number
+    - size for the array
+- `$column` - attribute name
+- `$impact` - impact for the rule
+- `$table` - table alias used in the plan
+- `$tag` - tag for which rule is applied 
+- `$value` - original parsed value
+- `$<column_name>` - the value of that specific column in that table
+- `$amount_<column_name>` - amount of that specific column
+
+### Rules Examples
+
+#### Basic rule example 
+
+```
+"type": {
+  "description": "Join used in the query for a specific table.",
+  "value_type": "string",
+  "rules": {
+    "system": {
+      "impact": "positive",
+      "message": "Table has zero or one row, no change required.",
+      "suggestion": "" 
+    },
+    "ALL": {
+      "impact": "negative",
+      "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
+      "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements.",
+      "score": {
+        "value": 200,
+        "type": "base" 
+      }
+    }
+}
+```
+For the above rule, dynamic message will be generated as-
+```
+Entire users table is scanned to find matching rows, you have 1 possible keys to use
+```
+For the above rule, dynamic suggestion will be generated as-
+```
+Use index here. You can use index from possible key: ["PRIMARY", "user_email"] or add new one to users table as per the requirements.
+```
+
+
+#### Absent rule example
+
+```
+"key": {
+  "description": "index key used for the table",
+  "value_type": "string",
+  "rules": {
+    "absent": {
+      "impact": "negative",
+      "message": "There is no index key used for $table table, and can result into full scan of the $table table",
+      "suggestion": "Please use index from possible_keys: $possible_keys or add new one to $table table as per the requirements." 
+    }
+  }
+}
+```
+
+For the above rule, dynamic message will be generated as-
+```
+There is no index key used for users table, and can result into full scan of the users table
+```
+For the above rule, dynamic suggestion will be generated as-
+```
+Please use index from possible_keys: ["PRIMARY", "user_email"] or add new one to users table as per the requirements.
+```
+
+
+#### Threshold rule example
+
+```
+"possible_keys": {
+  "description": "Index keys possible for a specifc table",
+  "value_type": "array",
+  "delimiter": ",",
+  "rules": {
+    "threshold": {
+      "amount": 5,
+      "impact": "negative",
+      "message": "There are $amount possible keys for $table table, having too many index keys can be unoptimal",
+      "suggestion": "Please check if there are extra indexes in $table table." 
+    }
+  }
+}
+```
+For the above rule, dynamic message will be generated as-
+```
+There are 10 possible keys for users table, having too many index keys can be unoptimal
+```
+For the above rule, dynamic suggestion will be generated as-
+```
+Please check if there are extra indexes in users table.
+```
+
+
+#### Complex Detailed rule example
+
+```
+"detailed#used_columns": {
+  "description": "",
+  "value_type": "array",
+  "rules": {
+    "threshold": {
+      "amount": 7,
+      "impact": "negative",
+      "message": "You have selected $amount columns, You should not select too many columns.",
+      "suggestion": "Please only select required columns.",
+      "score": {
+        "value": 10,
+        "type": "treshold_relative" 
+      }
+    }
+  }
+}
+```
+For the above rule, dynamic message will be generated as-
+```
+You have selected 10 columns, You should not select too many columns.
+```
+For the above rule, dynamic suggestions will be generated as-
+```
+Please only select required columns.
+```
+
+
+### Summary
+
+You can define similar rules for the summary. Current summary attribute supported - 
+
+- `cardinality` - cardinality based on all tables
+
+**NOTE:** You can add custom summary attributes by defining how to calculate them in `QueryPolice.add_summary` for an attribute key.
+
+
+
+### Attributes
+
+There are a lot of attributes for you to use based on the final execution plan. 
+
+You can use the normal execution plan attribute directly.
+Eg. `select_type, type, Extra, possible_keys`
+
+To check more keys you can use `EXPLAIN <query>`
+
+You can use the detailed execution plan attribute can be used in flattened form with the `detailed#` prefix.
+Eg. `detailed#used_columns, detailed#cost_info#read_cost`
+
+To check more keys you can use `EXPLAIN format=JSON <query>`
+
+---
+
+## How Query Police works?
 
 1. Query police converts the relation into SQL query
 
@@ -377,252 +593,6 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
   }
 }
 ```
-
----
-
-## How to define rules?
-
-Rules defined in the json file at config_path is applied to the execution plan. We have variety of option to define rules.
-
-You can change this by `QueryPolice.rules_path=<path>` and define your own rules
-
-### Rule Structure
-
-A basic rule structure - 
-```
-"<column_name>": { 
-  "description": <string>,
-  "value_type": <string>,
-  "delimiter": <string>, 
-  "rules": {
-    "<rule>": {
-      "amount": <integer>
-      "impact": <string>,
-      "message": <string>,
-      "suggestion": <string>,
-      "score": {
-        "value": <integer>,
-        "type": <string>
-      } 
-    }
-  }
-}
-```
-- `<column_name>` - attribute name in the final execution plan.
-
-- `description` - description of the attribute
-
-- `value_type` - value type of the attribute
-
-- `delimiter` - delimiter to parse array type attribute values, if no delimiter is passed engine will consider value is already in array form.
-
-- `<rule>` - kind of rule for the attribute
-
-    - `<tag>` - direct value match eg. ALL, SIMPLE
-
-    - `absent` - when the value is missing
-
-    - `threshold` - a greater than threshold check based on the amount set inside the rule.
-
-- `amount` - the amount of threshold that needs to check for 
-
-    - length for string
-
-    - value for number
-
-    - size for the array
-
-- `impact` - impact of the rule
-
-    - `negative`
-
-    - `postive`
-
-    - `caution`
-
-- `message` - the message needs to provide the significance of the rule
-
-- `suggestion` - suggestion on how we can fix the issue
-- `score` - score-related config that will be affected to final query score
-    - `value` - value that will be added to the query score 
-    -  `type` - the type of scoring that will be added to the query score
-        - `base`- value
-        - `relative` - value * (amount for that column in query)
-        - `treshold_relative` - (value - (threshold amount)) * (amount for that column in query)
-
-
-
-### Dynamic messages and suggestion
-
-We can define dynamic messages and suggestions with variables provided by the engine.
-
-- `$amount` - the amount of the value 
-
-    - length for string
-
-    - value for number
-
-    - size for the array
-
-- `$column` - attribute name
-
-- `$impact` - impact for the rule
-
-- `$table` - table alias used in the plan
-
-- `$tag` - tag for which rule is applied 
-
-- `$value` - original parsed value
-
-- `$<column_name>` - the value of that specific column in that table
-
-- `$amount_<column_name>` - amount of that specific column
-
-
-
-### Rules Examples
-
-#### Basic rule example 
-
-```
-"type": {
-  "description": "Join used in the query for a specific table.",
-  "value_type": "string",
-  "rules": {
-    "system": {
-      "impact": "positive",
-      "message": "Table has zero or one row, no change required.",
-      "suggestion": "" 
-    },
-    "ALL": {
-      "impact": "negative",
-      "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
-      "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements.",
-      "score": {
-        "value": 200,
-        "type": "base" 
-      }
-    }
-}
-```
-For the above rule, dynamic message will be generated as-
-```
-Entire users table is scanned to find matching rows, you have 1 possible keys to use
-```
-For the above rule, dynamic suggestion will be generated as-
-```
-Use index here. You can use index from possible key: ["PRIMARY", "user_email"] or add new one to users table as per the requirements.
-```
-
-
-#### Absent rule example
-
-```
-"key": {
-  "description": "index key used for the table",
-  "value_type": "string",
-  "rules": {
-    "absent": {
-      "impact": "negative",
-      "message": "There is no index key used for $table table, and can result into full scan of the $table table",
-      "suggestion": "Please use index from possible_keys: $possible_keys or add new one to $table table as per the requirements." 
-    }
-  }
-}
-```
-
-For the above rule, dynamic message will be generated as-
-```
-There is no index key used for users table, and can result into full scan of the users table
-```
-For the above rule, dynamic suggestion will be generated as-
-```
-Please use index from possible_keys: ["PRIMARY", "user_email"] or add new one to users table as per the requirements.
-```
-
-
-#### Threshold rule example
-
-```
-"possible_keys": {
-  "description": "Index keys possible for a specifc table",
-  "value_type": "array",
-  "delimiter": ",",
-  "rules": {
-    "threshold": {
-      "amount": 5,
-      "impact": "negative",
-      "message": "There are $amount possible keys for $table table, having too many index keys can be unoptimal",
-      "suggestion": "Please check if there are extra indexes in $table table." 
-    }
-  }
-}
-```
-For the above rule, dynamic message will be generated as-
-```
-There are 10 possible keys for users table, having too many index keys can be unoptimal
-```
-For the above rule, dynamic suggestion will be generated as-
-```
-Please check if there are extra indexes in users table.
-```
-
-
-#### Complex Detailed rule example
-
-```
-"detailed#used_columns": {
-  "description": "",
-  "value_type": "array",
-  "rules": {
-    "threshold": {
-      "amount": 7,
-      "impact": "negative",
-      "message": "You have selected $amount columns, You should not select too many columns.",
-      "suggestion": "Please only select required columns.",
-      "score": {
-        "value": 10,
-        "type": "treshold_relative" 
-      }
-    }
-  }
-}
-```
-For the above rule, dynamic message will be generated as-
-```
-You have selected 10 columns, You should not select too many columns.
-```
-For the above rule, dynamic suggestions will be generated as-
-```
-Please only select required columns.
-```
-
-
-### Summary
-
-You can define similar rules for the summary. Current summary attribute supported - 
-
-- `cardinality` - cardinality based on all tables
-
-**NOTE:** You can add custom summary attributes by defining how to calculate them in `QueryPolice.add_summary` for an attribute key.
-
-
-
-### Attributes
-
-There are a lot of attributes for you to use based on the final execution plan. 
-
-You can use the normal execution plan attribute directly.
-Eg. `select_type, type, Extra, possible_keys`
-
-To check more keys you can use `EXPLAIN <query>`
-
-You can use the detailed execution plan attribute can be used in flattened form with the `detailed#` prefix.
-Eg. `detailed#used_columns, detailed#cost_info#read_cost`
-
-To check more keys you can use `EXPLAIN format=JSON <query>`
-
----
 
 ## Development
 
