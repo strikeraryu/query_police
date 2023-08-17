@@ -209,20 +209,20 @@ You can change this by `QueryPolice.rules_path=<path>` and define your own rules
 **Note:** Check Query Police default rules defined at [rules.json](https://github.com/strikeraryu/query_police/blob/master/lib/query_police/rules.json) for better clarity.
 
 A basic rule structure - 
-```
+```json
 "<column_name>": { 
-  "description": <string>,
-  "value_type": <string>,
-  "delimiter": <string>, 
+  "description": "<string>",
+  "value_type": "<string>",
+  "delimiter": "<string>", 
   "rules": {
     "<rule>": {
-      "amount": <integer>
-      "impact": <string>,
-      "message": <string>,
-      "suggestion": <string>,
+      "amount": "<integer>"
+      "impact": "<string>",
+      "message": "<string>",
+      "suggestion": "<string>",
       "score": {
-        "value": <integer>,
-        "type": <string>
+        "value": "<integer>",
+        "type": "<string>"
       } 
     }
   }
@@ -275,7 +275,7 @@ We can define dynamic messages and suggestions with variables provided by the en
 
 #### Basic rule example 
 
-```
+```json
 "type": {
   "description": "Join used in the query for a specific table.",
   "value_type": "string",
@@ -308,7 +308,7 @@ Use index here. You can use index from possible key: ["PRIMARY", "user_email"] o
 
 #### Absent rule example
 
-```
+```json
 "key": {
   "description": "index key used for the table",
   "value_type": "string",
@@ -334,7 +334,7 @@ Please use index from possible_keys: ["PRIMARY", "user_email"] or add new one to
 
 #### Threshold rule example
 
-```
+```json
 "possible_keys": {
   "description": "Index keys possible for a specifc table",
   "value_type": "array",
@@ -361,7 +361,7 @@ Please check if there are extra indexes in users table.
 
 #### Complex Detailed rule example
 
-```
+```json
 "detailed#used_columns": {
   "description": "",
   "value_type": "array",
@@ -454,7 +454,7 @@ The result for this is added as it is in the final execution plan
 
 **Eg.**
 
-```
+```ruby
 {
     "profile" => {
                    "id" => 1,
@@ -493,7 +493,7 @@ Generated using `EXPAIN format=JSON <query>`
 
 **Truncated Result**
 
-```
+```ruby
 {
   "query_block": {
     "select_id": 1,
@@ -528,7 +528,7 @@ The result for this is added in the flattened form to the final execution plan, 
 
 **Truncated Eg.**
 
-```
+```ruby
 {
     "detailed#key_length" => "5",
     "detailed#rows_examined_per_scan" => 603,
@@ -559,7 +559,7 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
 
 **tables [Hash] - detailed table analysis**
 
-```
+```ruby
 {
   'users' => {                        
     'id'=>1,                    
@@ -583,7 +583,7 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
 ```
 **summary [Hash] - hash of analysis summary**
 
-```
+```ruby
 {
   'cardinality' => {
     'amount' => 10,
