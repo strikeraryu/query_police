@@ -6,11 +6,11 @@ It is a rule-based engine with custom rules to Analyze Active-Record relations u
 
 Install the gem and add it to the application's Gemfile by executing:
 
-    $ bundle add query_police
+    $ gem 'query_police', '~> 0.1.5.beta'
 
 If the bundler is not being used to manage dependencies, install the gem by executing:
 
-    $ gem install query_police
+    $ gem install query_police --pre
 
 ---
 
