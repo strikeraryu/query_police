@@ -21,8 +21,8 @@ If the bundler is not being used to manage dependencies, install the gem by exec
 Use `QueryPolice.analyse` to generate an analysis object for your Active-Record relation or query and then you can use pretty print on the object.
 
 ```ruby
-analysis = QueryPolice.analyse(<active_record_relation>)
-puts analysis.pretty_analysis_for(<impact>)
+analysis = QueryPolice.analyse(<query>)
+puts analysis.pretty_analysis
 ```
 
 **Eg.** 
@@ -35,9 +35,7 @@ analysis = QueryPolice.analyse(
   "select * from users join orders on orders.user_id = users.id" # analyse query using query string
 )
 
-puts analysis.pretty_analysis_for('negative')
-# or
-puts analysis.pretty_analysis({'negative' => true, 'positive' => true})
+puts analysis.pretty_analysis
 ```
 **Results**
 
@@ -102,7 +100,7 @@ puts analysis.pretty_analysis_for('positive') # impact negative, positive, cauti
 
 ### Multiple Impact
 
-To print pretty analysis for multiple impacts
+To print pretty analysis for multiple impacts, default: `{ 'negative' => true }`
 ```ruby
 analysis = QueryPolice.analyse("select * from users")
 puts analysis.pretty_analysis({'negative' => true, 'positive' => true})

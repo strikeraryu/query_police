@@ -111,7 +111,7 @@ module QueryPolice
     #   wrap_width: <integer>
     # ]
     # @return [String] pretty analysis
-    def pretty_analysis(opts)
+    def pretty_analysis(opts = { "negative" => true })
       final_message = ""
       opts = opts.with_indifferent_access
 
