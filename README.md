@@ -39,6 +39,9 @@ puts analysis.pretty_analysis
 ```
 **Results**
 
+**Note:** High value of score represent bad query, A query with more than 200 score can be consider as potential bad query.
+
+
 ```
 query_score: 330.0
 
