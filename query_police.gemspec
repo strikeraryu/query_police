@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activerecord", ">= 3.0.0", "< 8.0.0"
   spec.add_runtime_dependency "activesupport", ">= 3.0.0", "< 8.0.0"
   spec.add_runtime_dependency "colorize", ">= 0.5.0", "< 0.8.1"
-  spec.add_runtime_dependency "terminal-table", ">= 3.0.0", "< 3.0.2"
+  spec.add_runtime_dependency "terminal-table", ">= 1.5.0", "< 3.0.2"
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
