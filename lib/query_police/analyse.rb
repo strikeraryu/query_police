@@ -85,7 +85,7 @@ module QueryPolice
           score.to_f
         when "relative"
           amount.to_f * score.to_f
-        when "treshold_relative"
+        when "threshold_relative"
           (amount - tag_rule.dig("amount")).to_f * score.to_f
         else
           0

@@ -252,7 +252,7 @@ A basic rule structure -
     -  `type` - the type of scoring that will be added to the query score
         - `base`- value
         - `relative` - value * (amount for that column in query)
-        - `treshold_relative` - (value - (threshold amount)) * (amount for that column in query)
+        - `threshold_relative` - (value - (threshold amount)) * (amount for that column in query)
 
 
 
@@ -374,7 +374,7 @@ Please check if there are extra indexes in users table.
       "suggestion": "Please only select required columns.",
       "score": {
         "value": 10,
-        "type": "treshold_relative" 
+        "type": "threshold_relative" 
       }
     }
   }
