@@ -33,7 +33,12 @@ module QueryPolice
           "Please ensure that the file exists and the path is correct."
       end
 
-      JSON.parse(File.read(rules_path))
+      case File.extname(rules_path)
+      when ".yaml", ".yml"
+        YAML.safe_load(File.read(rules_path))
+      when ".json"
+        JSON.parse(File.read(rules_path))
+      end
     end
 
     def word_wrap(string, width = DEFAULT_WORD_WRAP_WIDTH)

@@ -202,7 +202,7 @@ QueryPolice.subscribe_logger logger_config: {'negative' => true}
 
 ## How to define custom rules?
 
-Rules defined in the json file at rules_path is applied to the execution plan. Query Police have variety of option to define rules.
+Rules defined in the json/yaml file at rules_path is applied to the execution plan. Query Police have variety of option to define rules.
 
 You can change this by `QueryPolice.rules_path=<path>` and define your own rules
 
@@ -210,6 +210,8 @@ You can change this by `QueryPolice.rules_path=<path>` and define your own rules
 **Note:** Check Query Police default rules defined at [rules.json](https://github.com/strikeraryu/query_police/blob/master/lib/query_police/rules.json) for better clarity.
 
 A basic rule structure - 
+
+JSON
 ```json
 "<column_name>": { 
   "description": "<string>",
@@ -217,7 +219,7 @@ A basic rule structure -
   "delimiter": "<string>", 
   "rules": {
     "<rule>": {
-      "amount": "<integer>"
+      "amount": "<integer>",
       "impact": "<string>",
       "message": "<string>",
       "suggestion": "<string>",
@@ -228,6 +230,22 @@ A basic rule structure -
     }
   }
 }
+```
+YAML
+```yaml
+<column_name>:
+  description: <string>
+  value_type: <string>
+  delimiter: <string>
+  rules:
+    <rule>:
+      amount: <integer>
+      impact: <string>
+      message: <string>
+      suggestion: <string>
+      score:
+        value: <integer>
+        type: <string>
 ```
 - `<column_name>` - attribute name in the final execution plan.
 - `description` - description of the attribute
