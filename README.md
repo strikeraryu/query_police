@@ -177,7 +177,7 @@ QueryPolice.detailed = false
 
 ### Logger
 
-Add the following line to your initial load file like `application.rb` to add logger. Logger will analyse all quries and log the analysis
+Add the following line to your initial load file like `application.rb` to add logger. Logger will analyse all queries and log the analysis
 ```ruby
 QueryPolice.subscribe_logger
 ```
