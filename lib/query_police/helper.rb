@@ -38,6 +38,8 @@ module QueryPolice
         YAML.safe_load(File.read(rules_path))
       when ".json"
         JSON.parse(File.read(rules_path))
+      else
+        raise Error, "'#{File.extname(rules_path)}' extension is not supported for rules."
       end
     end
 
