@@ -122,7 +122,7 @@ module QueryPolice
         final_message += pretty_analysis_for(impact, opts_) if value.present?
       end
 
-      opts.dig("skip_footer").present? ? final_message : final_message + footer
+      opts.dig("skip_footer").present? ? final_message : final_message + @footer
     end
 
     # to get analysis in pretty format with warnings and suggestions for a impact
@@ -143,7 +143,7 @@ module QueryPolice
         final_message += "#{table_message}\n" if table_message.present?
       end
 
-      opts.dig("skip_footer").present? ? final_message : final_message + footer
+      opts.dig("skip_footer").present? ? final_message : final_message + @footer
     end
 
     # to get the final score
