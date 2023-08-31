@@ -25,9 +25,6 @@ module QueryPolice
 
   @config = Config.new
 
-  # subscribe the logger
-  subscribe_logger
-
   CONFIG_METHODS = %i[
     analysis_logger_enabled analysis_logger_enabled? analysis_logger_enabled=
     detailed detailed? detailed=
@@ -58,27 +55,7 @@ module QueryPolice
     analysis
   end
 
-  # to analyse and log the analysis of a query
-  # @param query [ActiveRecord::Relation, String]
-  def analysis_logger(query)
-    return unless config.analysis_logger_enabled?
-
-    analysis = analyse(query)
-    Helper.logger(analysis.pretty_analysis(config.logger_options))
-  end
-
-  # to add a logger to print analysis after each query
-  def subscribe_logger
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-      begin
-        analysis_logger(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
-      rescue StandardError => e
-        raise e unless config.silent.present?
-
-        Helper.logger("#{e.class}: #{e.message}", "error")
-      end
-    end
-  end
+  module_function :analyse, *CONFIG_METHODS
 
   class << self
     attr_accessor :config
@@ -86,7 +63,32 @@ module QueryPolice
     def configure
       yield(config)
     end
+
+    private
+
+    # to analyse and log the analysis of a query
+    # @param query [ActiveRecord::Relation, String]
+    def analysis_logger(query)
+      return unless config.analysis_logger_enabled?
+
+      analysis = analyse(query)
+      Helper.logger(analysis.pretty_analysis(config.logger_options))
+    end
+
+    # to add a logger to print analysis after each query
+    def subscribe_logger
+      ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        begin
+          analysis_logger(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
+        rescue StandardError => e
+          raise e unless config.silent.present?
+
+          Helper.logger("#{e.class}: #{e.message}", "error")
+        end
+      end
+    end
   end
 
-  module_function :analyse, *CONFIG_METHODS
+  # subscribe logger on module usage
+  subscribe_logger
 end
