@@ -121,14 +121,14 @@ puts analysis.query_score
 ```
 
 #### Significance
-Query score signifies the quality of the query, High value represents a bad query. 
+Query score signifies the quality of the query, high value represents a bad query. 
 - `0 - 199` - Good Query
 - `200 - 499` - Potentially Bad query
 - `>=500` - Bad query
 
 ### Word wrap
 
-To change the word wrap width for the pretty analysis result `(default value: 100)`
+To change the word wrap width for the pretty analysis result, default value: `100`
 ```ruby
 analysis = QueryPolice.analyse("select * from users")
 puts analysis.pretty_analysis_for('positive', {'wrap_width' => 40})
@@ -169,7 +169,7 @@ puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 20})
 
 ### Skip footer
 
-To skip the footer(added in query police config) after a analysis of a query
+To skip the footer(added in [query police config](#analysis-footer)) after a analysis of a query
 ```ruby
 analysis = QueryPolice.analyse("select * from users")
 puts analysis.pretty_analysis_for('positive', {'skip_footer' => true})
@@ -213,7 +213,7 @@ end
 
 ### Verbosity
 
-Verbosity defines which `EXPLAIN` result should be used for analysis
+Verbosity defines which `EXPLAIN` result should be used for analysis. (More details about [EXPLAIN vs Detailed EXPLAIN](#execution-plan))
 - `basic` - It uses only `EXPLAIN`(basic) result
 - `detailed` - It uses both `EXPLAIN`(basic) and `EXPLAIN format=json`(detailed) results `(default value)`
 ```ruby
@@ -258,7 +258,7 @@ Rules defined in the json/yaml file at rules_path is applied to the execution pl
 You can change this by `QueryPolice.rules_path=<path>` and define your own rules
 
 ### Rule Structure
-**Note:** Check Query Police default rules defined at [rules.json](https://github.com/strikeraryu/query_police/blob/master/lib/query_police/rules.json) for better clarity.
+**Note:** Check Query Police default rules defined at [rules.json](lib/query_police/rules.json) or examples at [examples/rules/](examples/rules/) for better clarity 
 
 A basic rule structure - 
 
@@ -344,7 +344,7 @@ We can define dynamic messages and suggestions with variables provided by the en
 ### Rules Examples
 
 #### Basic rule example 
-
+File: [JSON](examples/rules/json/basic_rule.json) | [YAML](examples/rules/yaml/basic_rule.yml)
 ```json
 "type": {
   "description": "Join used in the query for a specific table.",
@@ -364,6 +364,7 @@ We can define dynamic messages and suggestions with variables provided by the en
         "type": "base" 
       }
     }
+  }
 }
 ```
 For the above rule, dynamic message will be generated as-
@@ -377,7 +378,7 @@ Use index here. You can use index from possible key: ["PRIMARY", "user_email"] o
 
 
 #### Absent rule example
-
+File: [JSON](examples/rules/json/absent_rule.json) | [YAML](examples/rules/yaml/absent_rule.yml)
 ```json
 "key": {
   "description": "index key used for the table",
@@ -403,7 +404,7 @@ Please use index from possible_keys: ["PRIMARY", "user_email"] or add new one to
 
 
 #### Threshold rule example
-
+File: [JSON](examples/rules/json/threshold_rule.json) | [YAML](examples/rules/yaml/threshold_rule.yml)
 ```json
 "possible_keys": {
   "description": "Index keys possible for a specifc table",
@@ -430,7 +431,7 @@ Please check if there are extra indexes in users table.
 
 
 #### Complex Detailed rule example
-
+File: [JSON](examples/rules/json/complex_detailed_rule.json) | [YAML](examples/rules/yaml/complex_detailed_rule.yml)
 ```json
 "detailed#used_columns": {
   "description": "",
@@ -469,7 +470,7 @@ You can define similar rules for the summary. Current only one attribute is supp
 
 
 
-### Attributes
+### Attributes for Rules
 
 There are a lot of attributes for you to use based on the final execution plan. 
 
