@@ -64,6 +64,15 @@ module QueryPolice
       yield(config)
     end
 
+    def evade_inspection
+      old_value = config.logger_enabled
+      config.logger_enabled = false
+
+      yield
+
+      config.logger_enabled = old_value
+    end
+
     private
 
     # to analyse and log the analysis of a query
