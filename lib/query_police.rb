@@ -65,12 +65,13 @@ module QueryPolice
     end
 
     def evade_inspection
-      old_value = config.logger_enabled
+      old_config_value = config.logger_enabled
       config.logger_enabled = false
 
-      yield
+      return_value = yield
 
-      config.logger_enabled = old_value
+      config.logger_enabled = old_config_value
+      return_value
     end
 
     private
