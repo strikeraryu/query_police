@@ -23,12 +23,16 @@ module QueryPolice
 
   class Error < StandardError; end
 
-  @config = Config.new(
-    Constants::DEFAULT_DETAILED, Constants::DEFAULT_RULES_PATH
-  )
+  @config = Config.new
+
+  # subscribe the logger
+  subscribe_logger
 
   CONFIG_METHODS = %i[
-    detailed detailed? detailed= rules_path rules_path=
+    analysis_logger_enabled analysis_logger_enabled? analysis_logger_enabled=
+    detailed detailed? detailed=
+    logger_options logger_options=
+    rules_path rules_path=
   ].freeze
 
   def_delegators :config, *CONFIG_METHODS
@@ -54,19 +58,22 @@ module QueryPolice
     analysis
   end
 
+  # to analyse and log the analysis of a query
+  # @param query [ActiveRecord::Relation, String]
+  def analysis_logger(query)
+    return unless config.analysis_logger_enabled?
+
+    analysis = analyse(query)
+    Helper.logger(analysis.pretty_analysis(config.logger_options))
+  end
+
   # to add a logger to print analysis after each query
-  # @param silent [Boolean] silent errors for logger
-  # @param logger_config [Hash] possible options [positive: <boolean>, negative: <boolean>, caution: <boolean>]
-  def subscribe_logger(silent: false, logger_config: Constants::DEFAULT_LOGGER_CONFIG)
+  def subscribe_logger
     ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
       begin
-        if !payload[:exception].present? && payload[:name] =~ /.* Load/
-          analysis = analyse(payload[:sql])
-
-          Helper.logger(analysis.pretty_analysis(logger_config))
-        end
+        analysis_logger(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
       rescue StandardError => e
-        raise e unless silent.present?
+        raise e unless config.silent.present?
 
         Helper.logger("#{e.class}: #{e.message}", "error")
       end
@@ -81,5 +88,5 @@ module QueryPolice
     end
   end
 
-  module_function :analyse, :subscribe_logger, *CONFIG_METHODS
+  module_function :analyse, *CONFIG_METHODS
 end
