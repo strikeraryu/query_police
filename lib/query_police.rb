@@ -81,8 +81,6 @@ module QueryPolice
         begin
           analysis_logger(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
         rescue StandardError => e
-          raise e unless config.silent.present?
-
           Helper.logger("#{e.class}: #{e.message}", "error")
         end
       end
