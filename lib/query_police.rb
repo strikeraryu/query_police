@@ -26,7 +26,6 @@ module QueryPolice
   @config = Config.new
 
   CONFIG_METHODS = %i[
-    detailed detailed? detailed=
     logger_enabled logger_enabled? logger_enabled=
     logger_options logger_options=
     rules_path rules_path=
