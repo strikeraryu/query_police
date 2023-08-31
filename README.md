@@ -39,7 +39,7 @@ puts analysis.pretty_analysis
 ```
 **Results**
 
-**Note:** High value of score represent bad query, A query with more than 200 score can be consider as potential bad query.
+**Note:** [Query score significance](#significance)  
 
 
 ```
@@ -81,7 +81,7 @@ query_score: 330.0
 +------------+-----------------------------------------------------------------------+
 ```
 
-###  Impact 
+###  Analysis for a Impact 
 
 To print pretty analysis for different impacts
 ```ruby
@@ -101,7 +101,7 @@ puts analysis.pretty_analysis_for('positive') # impact negative, positive, cauti
 # +-----------+----------------------------------------------+
 ```
 
-### Multiple Impact
+### Analysis for Multiple Impacts
 
 To print pretty analysis for multiple impacts, default: `{ 'negative' => true }`
 ```ruby
@@ -120,9 +120,15 @@ puts analysis.query_score
 # 100.0
 ```
 
+#### Significance
+Query score signifies the quality of the query, High value represents a bad query. 
+- `0 - 199` - Good Query
+- `200 - 499` - Potentially Bad query
+- `>=500` - Bad query
+
 ### Word wrap
 
-To change the word wrap width for the pretty analysis result
+To change the word wrap width for the pretty analysis result `(default value: 100)`
 ```ruby
 analysis = QueryPolice.analyse("select * from users")
 puts analysis.pretty_analysis_for('positive', {'wrap_width' => 40})
@@ -161,41 +167,86 @@ puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 20})
 # +-----------+--------------------+
 ```
 
+### Skip footer
+
+To skip the footer(added in query police config) after a analysis of a query
+```ruby
+analysis = QueryPolice.analyse("select * from users")
+puts analysis.pretty_analysis_for('positive', {'skip_footer' => true})
+# or
+puts analysis.pretty_analysis({'positive' => true, 'skip_footer' => true})
+```
+
+### Analysis Footer
+To define a footer text which will be added after a analysis for a query, by default there is no footer
+```ruby
+QueryPolice.analysis_footer = 'Please check more details with this link...'
+# or
+QueryPolice.configure do |config|
+  config.analysis_footer = 'Please check more details with this link...'
+end
+
+# puts
+# +----------------------------------------------------------+         
+# |                          users                           |         
+# +-----------+----------------------------------------------+         
+# | score     | 330.0                                        |         
+# +-----------+----------------------------------------------+         
+# | column    | select_type                                  |
+# | impact    | positive                                     |
+# | tag_score | 0                                            |
+# | message   | A simple query without subqueries or unions. |
+# +-----------+----------------------------------------------+
+# Please check more details with this link...
+```
+
 ### Custom rules path
 
-To define custom rules path (check below on how to define custom rules)
+To define custom rules path (check [how to define custom rules](#how-to-define-custom-rules) for further details)
 ```ruby
-QueryPolice.rule_path = 'path/to/rules/file'
+QueryPolice.rules_path = 'path/to/rules/file.<json/yml>'
+# or
+QueryPolice.configure do |config|
+  config.rules_path = 'path/to/rules/file.<json/yml>'
+end
 ```
 
-### Detailed explain
+### Verbosity
 
-By default detailed explain is added in the analysis, to turn off
+Verbosity defines which `EXPLAIN` result should be used for analysis
+- `basic` - It uses only `EXPLAIN`(basic) result
+- `detailed` - It uses both `EXPLAIN`(basic) and `EXPLAIN format=json`(detailed) results `(default value)`
 ```ruby
-QueryPolice.detailed = false
+QueryPolice.verbosity = "detailed"
+# or
+QueryPolice.configure do |config|
+  config.verbosity = "detailed"
+end
 ```
 
-### Logger
+### Analysis Logger
 
-Add the following line to your initial load file like `application.rb` to add logger. Logger will analyse all queries and log the analysis
+By default all the queries in rails enviroment will be logged with analysis, you can turn it off using
 ```ruby
-QueryPolice.subscribe_logger
-```
-
-### Silent logger
-
-To make the logger silent for errors 
-```ruby
-QueryPolice.subscribe_logger silent: true
+QueryPolice.logger_enabled = false
+# or
+QueryPolice.configure do |config|
+  config.logger_enabled = false
+end
 ```
 
 ### Logger config
 
-To change the logger config
+To change the logger options which will be used to generate analysis
 ```ruby
-QueryPolice.subscribe_logger logger_config: {'negative' => true}
+QueryPolice.logger_options = {'negative' => true}
+# or
+QueryPolice.configure do |config|
+  config.logger_options = {'negative' => true}
+end
+
 # default logger_config: {'negative' => true}
-# options negative: <Boolean>, positive: <Boolean>, caution: <Boolean>, wrap_width: <Integer>
+# options negative: <Boolean>, positive: <Boolean>, caution: <Boolean>, wrap_width: <Integer>, skip_footer: <Boolean>
 ```
 
 ---
@@ -247,7 +298,7 @@ YAML
         value: <integer>
         type: <string>
 ```
-- `<column_name>` - attribute name in the final execution plan.
+- `<column_name>` - attribute name in the final execution plan. (more details about [attributes](#attributes))
 - `description` - description of the attribute
 - `value_type` - value type of the attribute
 - `delimiter` - delimiter to parse array type attribute values, if no delimiter is passed engine will consider value is already in array form.
@@ -408,9 +459,9 @@ Please only select required columns.
 ```
 
 
-### Summary
+### Summary in Analysis
 
-You can define similar rules for the summary. Current summary attribute supported - 
+You can define similar rules for the summary. Current only one attribute is supported in summary - 
 
 - `cardinality` - cardinality based on all tables
 
