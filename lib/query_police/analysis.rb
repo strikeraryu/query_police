@@ -47,7 +47,8 @@ module QueryPolice
     #      "score" => 100.0
     #    }
     #  }
-    def initialize
+    def initialize(footer: nil)
+      @footer = footer || ""
       @summary = {}
       @summary_score = 0
       @table_count = 0
@@ -108,7 +109,8 @@ module QueryPolice
     #   positive: <boolean>,
     #   negative: <boolean>,
     #   caution: <boolean>,
-    #   wrap_width: <integer>
+    #   wrap_width: <integer>,
+    #   skip_footer: <boolean>
     # ]
     # @return [String] pretty analysis
     def pretty_analysis(opts = { "negative" => true })
@@ -116,10 +118,11 @@ module QueryPolice
       opts = opts.with_indifferent_access
 
       opts.slice(*IMPACTS.keys).each do |impact, value|
-        final_message += pretty_analysis_for(impact, opts.slice("wrap_width")) if value.present?
+        opts_ = opts.slice("wrap_width").merge({ "skip_footer" => true })
+        final_message += pretty_analysis_for(impact, opts_) if value.present?
       end
 
-      final_message
+      opts.dig("skip_footer").present? ? final_message : final_message + footer
     end
 
     # to get analysis in pretty format with warnings and suggestions for a impact
@@ -128,6 +131,7 @@ module QueryPolice
     # possible keys
     # [
     #   wrap_width: <integer>
+    #   skip_footer: <boolean>
     # ]
     # @return [String] pretty analysis
     def pretty_analysis_for(impact, opts = {})
@@ -139,7 +143,7 @@ module QueryPolice
         final_message += "#{table_message}\n" if table_message.present?
       end
 
-      final_message
+      opts.dig("skip_footer").present? ? final_message : final_message + footer
     end
 
     # to get the final score

@@ -26,6 +26,7 @@ module QueryPolice
   @config = Config.new
 
   CONFIG_METHODS = %i[
+    analysis_footer analysis_footer=
     logger_enabled logger_enabled? logger_enabled=
     logger_options logger_options=
     rules_path rules_path=
@@ -39,7 +40,7 @@ module QueryPolice
   # @return [QueryPolice::Analysis] analysis - contains the analysis of the query
   def analyse(relation)
     rules_config = Helper.load_config(config.rules_path)
-    analysis = Analysis.new
+    analysis = Analysis.new(footer: config.analysis_footer)
     summary = {}
 
     query_plan = Explain.full_explain(relation, config.verbosity)

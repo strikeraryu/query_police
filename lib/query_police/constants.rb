@@ -2,10 +2,11 @@
 
 module QueryPolice
   module Constants
-    DEFAULT_LOGGER_ENABLED = true
+    DEFAULT_ANALYSIS_FOOTER = ""
     DEFAULT_COLUMN_RULES = {
       "value_type" => "string"
     }.freeze
+    DEFAULT_LOGGER_ENABLED = true
     DEFAULT_LOGGER_OPTIONS = {
       "negative" => true
     }.freeze
