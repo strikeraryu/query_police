@@ -26,10 +26,11 @@ module QueryPolice
   @config = Config.new
 
   CONFIG_METHODS = %i[
-    analysis_logger_enabled analysis_logger_enabled? analysis_logger_enabled=
     detailed detailed? detailed=
+    logger_enabled logger_enabled? logger_enabled=
     logger_options logger_options=
     rules_path rules_path=
+    verbosity verbosity=
   ].freeze
 
   def_delegators :config, *CONFIG_METHODS
@@ -42,7 +43,7 @@ module QueryPolice
     analysis = Analysis.new
     summary = {}
 
-    query_plan = Explain.full_explain(relation, config.detailed?)
+    query_plan = Explain.full_explain(relation, config.verbosity)
 
     query_plan.each do |table|
       table_analysis, summary, table_score = Analyse.table(table, summary, rules_config)
@@ -69,7 +70,7 @@ module QueryPolice
     # to analyse and log the analysis of a query
     # @param query [ActiveRecord::Relation, String]
     def analysis_logger(query)
-      return unless config.analysis_logger_enabled?
+      return unless config.logger_enabled?
 
       analysis = analyse(query)
       Helper.logger(analysis.pretty_analysis(config.logger_options))

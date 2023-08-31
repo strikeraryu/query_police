@@ -6,20 +6,16 @@ module QueryPolice
   # This class is used for configuration of query police
   class Config
     def initialize
-      @analysis_logger_enabled = Constants::DEFAULT_ANALYSIS_LOGGER_ENABLED
-      @detailed = Constants::DEFAULT_DETAILED
+      @logger_enabled = Constants::DEFAULT_LOGGER_ENABLED
       @logger_options = Constants::DEFAULT_LOGGER_OPTIONS
       @rules_path = Constants::DEFAULT_RULES_PATH
+      @verbosity = Constants::DEFAULT_VERBOSITY
     end
 
-    def analysis_logger_enabled?
-      @analysis_logger_enabled.present?
+    def logger_enabled?
+      @logger_enabled.present?
     end
 
-    def detailed?
-      @detailed.present?
-    end
-
-    attr_accessor :analysis_logger_enabled, :detailed, :logger_options, :rules_path
+    attr_accessor :logger_enabled, :logger_options, :rules_path, :verbosity
   end
 end

@@ -5,12 +5,15 @@ require_relative "helper"
 module QueryPolice
   # This module provides tools to explain queries and ActiveRecord::Relation
   module Explain
+    DETAILED_VERBOSITY = "detailed"
+
     # to get explain result in parsable format
     # @param relation [ActiveRecord::Relation, String] active record relation or raw sql query
+    # @param verbosity [Symbol] mode to define which EXPLAIN result should be inlcuded in final result
     # @return [Array] parsed_result - array of hashes representing EXPLAIN result for each row
-    def full_explain(relation, detailed = true)
+    def full_explain(relation, verbosity = nil)
       explain_result = explain(relation)
-      return explain_result unless detailed
+      return explain_result unless verbosity.to_s.eql?(DETAILED_VERBOSITY)
 
       detailed_explain_result = detailed_explain(relation)
 
