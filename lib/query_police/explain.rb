@@ -13,7 +13,7 @@ module QueryPolice
     # @return [Array] parsed_result - array of hashes representing EXPLAIN result for each row
     def full_explain(relation, verbosity = nil)
       explain_result = explain(relation)
-      return explain_result unless verbosity.to_s.eql?(DETAILED_VERBOSITY)
+      return explain_result.values unless verbosity.to_s.eql?(DETAILED_VERBOSITY)
 
       detailed_explain_result = detailed_explain(relation)
 
