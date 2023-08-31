@@ -20,6 +20,6 @@ module QueryPolice
       @detailed.present?
     end
 
-    attr_accessor :analysis_logger_enabled, :detailed, :logger_opts, :rules_path
+    attr_accessor :analysis_logger_enabled, :detailed, :logger_options, :rules_path
   end
 end
