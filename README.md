@@ -253,7 +253,7 @@ end
 
 ## How to define custom rules?
 
-Rules defined in the json/yaml file at rules_path is applied to the execution plan. Query Police have variety of option to define rules.
+Rules defined in the `json/yaml` file at rules_path is applied to the execution plan. Query Police have variety of option to define rules.
 
 You can change this by `QueryPolice.rules_path=<path>` and define your own rules
 
@@ -298,7 +298,7 @@ YAML
         value: <integer>
         type: <string>
 ```
-- `<column_name>` - attribute name in the final execution plan. (more details about [attributes](#attributes))
+- `<column_name>` - attribute name in the final execution plan. (more details about [attributes](#attributes-for-rules))
 - `description` - description of the attribute
 - `value_type` - value type of the attribute
 - `delimiter` - delimiter to parse array type attribute values, if no delimiter is passed engine will consider value is already in array form.
