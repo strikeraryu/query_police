@@ -75,6 +75,10 @@ module QueryPolice
 
   class << self
     attr_accessor :config
+
+    def configure
+      yield(config)
+    end
   end
 
   module_function :analyse, :subscribe_logger, *CONFIG_METHODS
