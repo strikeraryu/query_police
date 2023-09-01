@@ -24,10 +24,11 @@ module QueryPolice
   class Error < StandardError; end
 
   @config = Config.new
+  @analysis_actions = []
 
   CONFIG_METHODS = %i[
+    analysis_action_enabled analysis_action_enabled? analysis_action_enabled=
     analysis_footer analysis_footer=
-    logger_enabled logger_enabled? logger_enabled=
     logger_options logger_options=
     rules_path rules_path=
     verbosity verbosity=
@@ -61,36 +62,46 @@ module QueryPolice
   class << self
     attr_accessor :config
 
+    def add_analysis_action(&block)
+      @analysis_actions << block
+
+      true
+    end
+
     def configure
       yield(config)
     end
 
     def evade_inspection
-      old_config_value = config.logger_enabled
-      config.logger_enabled = false
+      old_config_value = config.analysis_action_enabled
+      config.analysis_action_enabled = false
 
       return_value = yield
 
-      config.logger_enabled = old_config_value
+      config.analysis_action_enabled = old_config_value
       return_value
     end
 
     private
 
-    # to analyse and log the analysis of a query
+    # action to be performed for analysis of a query
     # @param query [ActiveRecord::Relation, String]
-    def analysis_logger(query)
-      return unless config.logger_enabled?
+    def analysis_action(query)
+      return unless config.analysis_action_enabled?
 
       analysis = analyse(query)
       Helper.logger(analysis.pretty_analysis(config.logger_options))
+
+      @analysis_actions.each do |analysis_action_|
+        analysis_action_.call(analysis)
+      end
     end
 
-    # to add a logger to print analysis after each query
-    def subscribe_logger
+    # to add a analysis actions after each query
+    def subscribe_analysis_action
       ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         begin
-          analysis_logger(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
+          analysis_action(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
         rescue StandardError => e
           Helper.logger("#{name}::#{e.class}: #{e.message}", "error")
         end
@@ -98,6 +109,6 @@ module QueryPolice
     end
   end
 
-  # subscribe logger on module usage
-  subscribe_logger
+  # subscribe analysis action on module usage
+  subscribe_analysis_action
 end

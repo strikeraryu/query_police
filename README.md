@@ -169,7 +169,7 @@ puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 20})
 
 ### Skip footer
 
-To skip the footer(added in [query police config](#analysis-footer)) after a analysis of a query
+To skip the footer (added in [query police config](#analysis-footer)) after an analysis of a query
 ```ruby
 analysis = QueryPolice.analyse("select * from users")
 puts analysis.pretty_analysis_for('positive', {'skip_footer' => true})
@@ -178,7 +178,7 @@ puts analysis.pretty_analysis({'positive' => true, 'skip_footer' => true})
 ```
 
 ### Analysis Footer
-To define a footer text which will be added after a analysis for a query, by default there is no footer
+To define a footer text that will be added after an analysis for a query, by default there is no footer
 ```ruby
 QueryPolice.analysis_footer = 'Please check more details with this link...'
 # or
@@ -202,7 +202,7 @@ end
 
 ### Custom rules path
 
-To define custom rules path (check [how to define custom rules](#how-to-define-custom-rules) for further details)
+To define custom rules path (More details about [how to define custom rules](#how-to-define-custom-rules))
 ```ruby
 QueryPolice.rules_path = 'path/to/rules/file.<json/yml>'
 # or
@@ -224,14 +224,24 @@ QueryPolice.configure do |config|
 end
 ```
 
-### Analysis Logger
+### Custom Analysis Actions
 
-By default all the queries in rails enviroment will be logged with analysis, you can turn it off using
+To add custom analysis actions, by default a logger action is already added and enabled (More details about [Analysis Object](#analysis-object))
 ```ruby
-QueryPolice.logger_enabled = false
+QueryPolice.add_analysis_action do |analysis| # analysis object for the query
+  puts analysis.tables
+end
+```
+
+### Disable Analysis Actions
+
+To disable analysis actions that are performed on each query.
+```ruby
+# Note: As logger action is already added, query police will log pretty analysis after each query by default
+QueryPolice.analysis_action_enabled = false
 # or
 QueryPolice.configure do |config|
-  config.logger_enabled = false
+  config.analysis_action_enabled = false
 end
 ```
 
