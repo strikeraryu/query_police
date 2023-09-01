@@ -90,7 +90,7 @@ module QueryPolice
     def subscribe_logger
       ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         begin
-          analysis_logger(payload[:sql]) unless payload[:exception].present? || payload[:sql] =~ /^\s*EXPLAIN\b/i
+          analysis_logger(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
         rescue StandardError => e
           Helper.logger("#{name}::#{e.class}: #{e.message}", "error")
         end
