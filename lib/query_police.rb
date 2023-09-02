@@ -24,10 +24,10 @@ module QueryPolice
   class Error < StandardError; end
 
   @config = Config.new
-  @analysis_actions = []
+  @actions = []
 
   CONFIG_METHODS = %i[
-    analysis_action_enabled analysis_action_enabled? analysis_action_enabled=
+    action_enabled action_enabled? action_enabled=
     analysis_footer analysis_footer=
     logger_options logger_options=
     rules_path rules_path=
@@ -62,8 +62,8 @@ module QueryPolice
   class << self
     attr_accessor :config
 
-    def add_analysis_action(&block)
-      @analysis_actions << block
+    def add_action(&block)
+      @actions << block
 
       true
     end
@@ -72,36 +72,36 @@ module QueryPolice
       yield(config)
     end
 
-    def evade_inspection
-      old_config_value = config.analysis_action_enabled
-      config.analysis_action_enabled = false
+    def evade_actions
+      old_config_value = config.action_enabled
+      config.action_enabled = false
 
       return_value = yield
 
-      config.analysis_action_enabled = old_config_value
+      config.action_enabled = old_config_value
       return_value
     end
 
     private
 
-    # action to be performed for analysis of a query
+    # perform actions on the analysis of a query
     # @param query [ActiveRecord::Relation, String]
-    def analysis_action(query)
-      return unless config.analysis_action_enabled?
+    def perform_actions(query)
+      return unless config.action_enabled?
 
       analysis = analyse(query)
       Helper.logger(analysis.pretty_analysis(config.logger_options))
 
-      @analysis_actions.each do |analysis_action_|
-        analysis_action_.call(analysis)
+      @actions.each do |action|
+        action.call(analysis)
       end
     end
 
-    # to add a analysis actions after each query
-    def subscribe_analysis_action
+    # to subscribe to active support notification to perform actions after each query
+    def subscribe_action
       ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
         begin
-          analysis_action(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
+          perform_actions(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
         rescue StandardError => e
           Helper.logger("#{name}::#{e.class}: #{e.message}", "error")
         end
@@ -109,6 +109,6 @@ module QueryPolice
     end
   end
 
-  # subscribe analysis action on module usage
-  subscribe_analysis_action
+  # subscribe to active support notification on module usage
+  subscribe_action
 end

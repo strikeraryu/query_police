@@ -1,6 +1,6 @@
 # QueryPolice
 
-It is a rule-based engine with custom rules to Analyze Active-Record relations using explain results to detect bad queries.
+It is a rule-based engine with custom rules to Analyze Active-Record relations using explain results and detect bad queries.
 
 ## Installation
 
@@ -224,24 +224,24 @@ QueryPolice.configure do |config|
 end
 ```
 
-### Custom Analysis Actions
+### Disable Actions
 
-To add custom analysis actions, by default a logger action is already added and enabled (More details about [Analysis Object](#analysis-object))
+To disable actions that are performed on each query.
 ```ruby
-QueryPolice.add_analysis_action do |analysis| # analysis object for the query
-  puts analysis.tables
+# Note: A logger action is already added, so query police will log pretty analysis after each query by default
+QueryPolice.action_enabled = false
+# or
+QueryPolice.configure do |config|
+  config.action_enabled = false
 end
 ```
 
-### Disable Analysis Actions
+### Custom Actions
 
-To disable analysis actions that are performed on each query.
+To add custom actions, by default a logger action is already added and enabled (More details about [Analysis Object](#analysis-object))
 ```ruby
-# Note: As logger action is already added, query police will log pretty analysis after each query by default
-QueryPolice.analysis_action_enabled = false
-# or
-QueryPolice.configure do |config|
-  config.analysis_action_enabled = false
+QueryPolice.add_action do |analysis| # analysis object for the query
+  puts analysis.tables
 end
 ```
 
