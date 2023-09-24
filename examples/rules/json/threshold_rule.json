@@ -1,0 +1,15 @@
+{
+  "possible_keys": {
+    "description": "Index keys possible for a specifc table",
+    "value_type": "array",
+    "delimiter": ",",
+    "rules": {
+      "threshold": {
+        "amount": 5,
+        "impact": "negative",
+        "message": "There are $amount possible keys for $table table, having too many index keys can be unoptimal",
+        "suggestion": "Please check if there are extra indexes in $table table."
+      }
+    }
+  }
+}

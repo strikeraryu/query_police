@@ -4,6 +4,8 @@
 module QueryPolice
   # This module define helper methods for query police
   module Helper
+    DEFAULT_WORD_WRAP_WIDTH = 100
+
     def flatten_hash(hash, prefix_key = "")
       flat_hash = {}
 
@@ -31,12 +33,20 @@ module QueryPolice
           "Please ensure that the file exists and the path is correct."
       end
 
-      JSON.parse(File.read(rules_path))
+      case File.extname(rules_path)
+      when ".yaml", ".yml"
+        YAML.safe_load(File.read(rules_path))
+      when ".json"
+        JSON.parse(File.read(rules_path))
+      else
+        raise Error, "'#{File.extname(rules_path)}' extension is not supported for rules."
+      end
     end
 
-    def word_wrap(string, width = 100)
+    def word_wrap(string, width = DEFAULT_WORD_WRAP_WIDTH)
+      width ||= DEFAULT_WORD_WRAP_WIDTH
       words = string.split
-      wrapped_string = " "
+      wrapped_string = ""
 
       words.each do |word|
         last_line_size = (wrapped_string.split("\n")[-1]&.size || 0)

@@ -5,12 +5,15 @@ require_relative "helper"
 module QueryPolice
   # This module provides tools to explain queries and ActiveRecord::Relation
   module Explain
+    DETAILED_VERBOSITY = "detailed"
+
     # to get explain result in parsable format
     # @param relation [ActiveRecord::Relation, String] active record relation or raw sql query
+    # @param verbosity [Symbol] mode to define which EXPLAIN result should be inlcuded in final result
     # @return [Array] parsed_result - array of hashes representing EXPLAIN result for each row
-    def full_explain(relation, detailed = true)
+    def full_explain(relation, verbosity = nil)
       explain_result = explain(relation)
-      return explain_result unless detailed
+      return explain_result.values unless verbosity.to_s.eql?(DETAILED_VERBOSITY)
 
       detailed_explain_result = detailed_explain(relation)
 
@@ -59,9 +62,19 @@ module QueryPolice
 
       def parse_detailed_explain(explain_result)
         parsed_result = JSON.parse(explain_result&.first&.first || "{}").dig("query_block")
+        parsed_result = parse_detailed_explain_operations(parsed_result)
+
         return parsed_result.dig("nested_loop").map { |e| e.dig("table") } if parsed_result.key?("nested_loop")
 
         parsed_result.key?("table") ? [parsed_result.dig("table")] : []
+      end
+
+      def parse_detailed_explain_operations(parsed_result)
+        parsed_result = parsed_result.dig("ordering_operation") || parsed_result
+        parsed_result = parsed_result.dig("grouping_operation") || parsed_result
+        parsed_result = parsed_result.dig("duplicates_removal") || parsed_result
+
+        parsed_result
       end
     end
 

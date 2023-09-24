@@ -1,69 +1,69 @@
 {
   "select_type": {
-    "description": "Type of select used in the table.",
+    "description": "Type of SELECT statement used in the table",
     "value_type": "string",
     "rules": {
       "SIMPLE": {
         "impact": "positive",
-        "message": "A simple query without subqueries or unions.",
+        "message": "This query is a simple one without any subqueries or unions",
         "suggestion": ""
       }
     }
   },
   "type": {
-    "description": "Join used in the query for a specific table.",
+    "description": "Type of join used in the query for a specific table",
     "value_type": "string",
     "rules": {
       "system": {
         "impact": "positive",
-        "message": "Table has zero or one row, no change required.",
+        "message": "This table contains zero or one rows, so no changes are needed",
         "suggestion": ""
       },
       "const": {
         "impact": "positive",
-        "message": "Table has only one indexed matching row, fastest join type.",
+        "message": "This table has only one indexed matching row, making this the fastest type of join",
         "suggestion": ""
       },
       "eq_ref": {
         "impact": "positive",
-        "message": "All index parts used in join and index is primary_key or unique not null.",
+        "message": "All index parts are used in this join, and the index is a primary key or unique not null",
         "suggestion": ""
       },
       "ref": {
         "impact": "caution",
-        "message": "All matching rows of an indexed column read for each combination of rows from previous table.",
-        "suggestion": "Ensure the referenced column is indexed and look for null values, dupilcates. Upgrade to eq_ref join type if possible.\nYou can acheive eq_ref by adding unique and not null to the index - $key used in $table table table."
+        "message": "All matching rows of an indexed column are read for each combination of rows from the previous table",
+        "suggestion": "Ensure the referenced column is indexed and check for null values and duplicates. If possible, consider upgrading to an eq_ref join type. You can achieve this by adding unique and not null constraints to the index - $key used in $table table"
       },
       "fulltext": {
         "impact": "caution",
-        "message": "Join uses table FULLTEXT index, index key used - $key.",
-        "suggestion": "Should only be used for text heavy columns."
+        "message": "The join uses a table FULLTEXT index, with the index key used - $key",
+        "suggestion": "This should only be used for columns with heavy text content"
       },
       "ref_or_null": {
         "impact": "caution",
-        "message": "Using ref index with Null value in $table table.",
-        "suggestion": "Please check if you can upgrade to eq_ref, you can acheive eq_ref by adding unique and not null to the index - $key used in $table table."
+        "message": "A ref index is used with Null values in the $table table",
+        "suggestion": "Consider upgrading to an eq_ref join if possible. You can achieve this by adding unique and not null constraints to the index - $key used in $table table"
       },
       "index_merge": {
         "impact": "caution",
-        "message": "Join uses list of indexes, keys used: $key.",
-        "suggestion": "Slow if the indexes are not well-chosen or if there are too many indexes being used."
+        "message": "The join involves a list of indexes, with keys used: $key",
+        "suggestion": "Be cautious as this might be slow if the indexes are poorly chosen or if there are too many indexes being used"
       },
       "range": {
         "impact": "caution",
-        "message": "Index used to find matching rows in specific range.",
-        "suggestion": "Please check the range it should not be too broad."
+        "message": "An index is used to find matching rows within a specific range",
+        "suggestion": "Please check the range; ensure it's not too broad"
       },
       "index": {
         "impact": "caution",
-        "message": "Entire index tree scanned to find matching rows.",
-        "suggestion": "Can be slow for large indexes(Your key length: $key_len), use carefully."
+        "message": "The entire index tree is scanned to find matching rows",
+        "suggestion": "This can be slow for large indexes (Your key length: $key_len). Use this option carefully"
       },
       "ALL": {
         "impact": "negative",
-        "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
-        "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements.",
-        "score": {
+        "message": "The entire $table table is scanned to find matching rows. There are $amount_possible_keys possible keys that could be used",
+        "suggestion": "Use an index in this scenario. You can use the index from possible key: $possible_keys or add a new index to the $table table as needed",
+        "debt": {
           "value": 100,
           "type": "base"
         }
@@ -71,27 +71,27 @@
     }
   },
   "rows": {
-    "description": "Estimated number of rows scanned to find matching rows.",
+    "description": "Estimated number of rows scanned to find matching rows",
     "value_type": "number",
     "rules": {
       "threshold": {
         "amount": 100,
         "impact": "negative",
-        "message": "$value rows are being scanned per join for $table table.",
-        "suggestion": "Please see if it is possible to use index from $possible_keys or add new one to $table table as per the requirements to reduce the number of rows scanned."
+        "message": "This query scans approximately $value rows per join for the $table table",
+        "suggestion": "Consider using an index from $possible_keys or adding a new index to the $table table to reduce the number of scanned rows"
       }
     }
   },
   "possible_keys": {
-    "description": "Index keys possible for a specifc table",
+    "description": "Index keys possible for a specific table",
     "value_type": "array",
     "delimiter": ",",
     "rules": {
       "absent": {
         "impact": "negative",
-        "message": "There are no possible keys for $table table to be used, can result into full scan",
-        "suggestion": "Please add index keys for $table table",
-        "score": {
+        "message": "There are no possible keys for the $table table, which can lead to a full scan",
+        "suggestion": "Add appropriate index keys for the $table table",
+        "debt": {
           "value": 50,
           "type": "base"
         }
@@ -99,24 +99,24 @@
       "threshold": {
         "amount": 5,
         "impact": "negative",
-        "message": "There are $amount possible keys for $table table, having too many index keys can be unoptimal",
-        "suggestion": "Please check if there are extra indexes in $table table.",
-        "score": {
+        "message": "There are $amount possible keys for the $table table; having too many index keys can be suboptimal",
+        "suggestion": "Check for unnecessary indexes in the $table table",
+        "debt": {
           "value": 20,
-          "type": "treshold_relative"
+          "type": "threshold_relative"
         }
       }
     }
   },
   "key": {
-    "description": "",
+    "description": "The index key used",
     "value_type": "string",
     "rules": {
       "absent": {
         "impact": "negative",
-        "message": "There is no index key used for $table table, and can result into full scan of the $table table",
-        "suggestion": "Please use index from possible_keys: $possible_keys or add new one to $table table as per the requirements.",
-        "score": {
+        "message": "No index key is being used for the $table table, which may result in a full table scan",
+        "suggestion": "Use an index from possible_keys: $possible_keys or add a new one to the $table table as required",
+        "debt": {
           "value": 50,
           "type": "base"
         }
@@ -124,25 +124,25 @@
     }
   },
   "key_len": {
-    "description": "Length of the key index used",
+    "description": "Length of the index key used",
     "value_type": "number",
     "rules": {}
   },
   "filtered": {
-    "description": "Indicates percentage of rows appearing from the total.",
+    "description": "Percentage of rows appearing from the total",
     "value_type": "number",
     "rules": {}
   },
-  "extra": {
-    "description": "Additional information about the plan",
+  "Extra": {
+    "description": "Additional information about the query execution plan",
     "value_type": "array",
     "delimiter": ";",
     "rules": {
       "Using filesort": {
         "impact": "negative",
-        "message": "A file-based algorithm in being applied over your result, This can be inefficient and result into long query time.",
-        "suggestion": "Please ensure either result set is small or use proper index.",
-        "score": {
+        "message": "A file-based sorting algorithm is being used for your result. This could be inefficient and lead to longer query times",
+        "suggestion": "Ensure that the result set is small or use a proper index",
+        "debt": {
           "value": 50,
           "type": "base"
         }
@@ -156,35 +156,44 @@
         "impact": "",
         "message": "",
         "suggestion": ""
+      },
+      "no matching row in const table": {
+        "impact": "negative",
+        "message": "The query wasn't thoroughly analyzed as it refers to a constant value with no matching row in the respective tables",
+        "suggestion": "Add rows that correspond to the constant value or modify the reference. You can associate the reference with a constant value that has a corresponding row or refer to a column with a matching value",
+        "debt": {
+          "value": 1000,
+          "type": "base"
+        }
       }
     }
   },
   "detailed#used_columns": {
-    "description": "number of column used to execute the query",
+    "description": "Number of columns used to execute the query",
     "value_type": "array",
     "rules": {
       "threshold": {
         "amount": 5,
         "impact": "negative",
-        "message": "You have selected $amount columns, You should not select too many columns.",
-        "suggestion": "Please only select required columns.",
-        "score": {
+        "message": "You have selected $amount columns, which could be excessive",
+        "suggestion": "Please only select the required columns",
+        "debt": {
           "value": 10,
-          "type": "treshold_relative"
+          "type": "threshold_relative"
         }
       }
     }
   },
-  "detailed#cost_info#read_cost ": {
-    "description": "read cost to execute the query",
+  "detailed#cost_info#read_cost": {
+    "description": "Read cost to execute the query",
     "value_type": "number",
     "rules": {
       "threshold": {
         "amount": 100,
         "impact": "negative",
-        "message": "The read cost of query is to high, most likely you are scanning to many rows",
-        "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins.",
-        "score": {
+        "message": "The read cost of the query is $amount, which is considered too high. It's likely that you are scanning too many rows",
+        "suggestion": "Please optimize your query by using proper indexes, querying only the required data, and ensuring appropriate joins",
+        "debt": {
           "value": 0.01,
           "type": "relative"
         }
@@ -192,15 +201,15 @@
     }
   },
   "cardinality": {
-    "description": "total cardinality of the query",
+    "description": "Total cardinality of the query",
     "value_type": "number",
     "rules": {
       "threshold": {
         "amount": 500,
         "impact": "negative",
-        "message": "The cardinality of table is $amount, and its too high.",
-        "suggestion": "Please use proper index, query only requried data and ensure you are using proper joins.",
-        "score": {
+        "message": "The cardinality of the table is $amount, which is considered too high",
+        "suggestion": "Please optimize your query by using proper indexes, querying only the required data, and ensuring appropriate joins",
+        "debt": {
           "value": 0.01,
           "type": "relative"
         }

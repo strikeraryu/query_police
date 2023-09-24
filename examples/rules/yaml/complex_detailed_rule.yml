@@ -1,0 +1,13 @@
+---
+detailed#used_columns:
+  description: ''
+  value_type: array
+  rules:
+    threshold:
+      amount: 7
+      impact: negative
+      message: You have selected $amount columns, You should not select too many columns.
+      suggestion: Please only select required columns.
+      debt:
+        value: 10
+        type: threshold_relative

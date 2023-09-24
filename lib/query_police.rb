@@ -23,12 +23,15 @@ module QueryPolice
 
   class Error < StandardError; end
 
-  @config = Config.new(
-    Constants::DEFAULT_DETAILED, Constants::DEFAULT_RULES_PATH
-  )
+  @config = Config.new
+  @actions = []
 
   CONFIG_METHODS = %i[
-    detailed detailed? detailed= rules_path rules_path=
+    action_enabled action_enabled? action_enabled=
+    analysis_footer analysis_footer=
+    logger_options logger_options=
+    rules_path rules_path=
+    verbosity verbosity=
   ].freeze
 
   def_delegators :config, *CONFIG_METHODS
@@ -38,15 +41,15 @@ module QueryPolice
   # @return [QueryPolice::Analysis] analysis - contains the analysis of the query
   def analyse(relation)
     rules_config = Helper.load_config(config.rules_path)
-    analysis = Analysis.new
+    analysis = Analysis.new(footer: config.analysis_footer)
     summary = {}
 
-    query_plan = Explain.full_explain(relation, config.detailed?)
+    query_plan = Explain.full_explain(relation, config.verbosity)
 
     query_plan.each do |table|
-      table_analysis, summary, table_score = Analyse.table(table, summary, rules_config)
+      table_analysis, summary, table_debt = Analyse.table(table, summary, rules_config)
 
-      analysis.register_table(table.dig("table"), table_analysis, table_score)
+      analysis.register_table(table.dig("table"), table_analysis, table_debt)
     end
 
     analysis.register_summary(*Analyse.generate_summary(rules_config, summary))
@@ -54,28 +57,58 @@ module QueryPolice
     analysis
   end
 
-  # to add a logger to print analysis after each query
-  # @param silent [Boolean] silent errors for logger
-  # @param logger_config [Hash] possible options [positive: <boolean>, negative: <boolean>, caution: <boolean>]
-  def subscribe_logger(silent: false, logger_config: Constants::DEFAULT_LOGGER_CONFIG)
-    ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
-      begin
-        if !payload[:exception].present? && payload[:name] =~ /.* Load/
-          analysis = analyse(payload[:sql])
+  module_function :analyse, *CONFIG_METHODS
 
-          Helper.logger(analysis.pretty_analysis(logger_config))
+  class << self
+    attr_accessor :config
+
+    def add_action(&block)
+      @actions << block
+
+      true
+    end
+
+    def configure
+      yield(config)
+    end
+
+    def evade_actions
+      old_config_value = config.action_enabled
+      config.action_enabled = false
+
+      return_value = yield
+
+      config.action_enabled = old_config_value
+      return_value
+    end
+
+    private
+
+    # perform actions on the analysis of a query
+    # @param query [ActiveRecord::Relation, String]
+    def perform_actions(query)
+      return unless config.action_enabled?
+
+      analysis = analyse(query)
+      Helper.logger(analysis.pretty_analysis(config.logger_options))
+
+      @actions.each do |action|
+        action.call(analysis)
+      end
+    end
+
+    # to subscribe to active support notification to perform actions after each query
+    def subscribe_action
+      ActiveSupport::Notifications.subscribe("sql.active_record") do |_, _, _, _, payload|
+        begin
+          perform_actions(payload[:sql]) if !payload[:exception].present? && payload[:name] =~ /.* Load/
+        rescue StandardError => e
+          Helper.logger("#{name}::#{e.class}: #{e.message}", "error")
         end
-      rescue StandardError => e
-        raise e unless silent.present?
-
-        Helper.logger("#{e.class}: #{e.message}", "error")
       end
     end
   end
 
-  class << self
-    attr_accessor :config
-  end
-
-  module_function :analyse, :subscribe_logger, *CONFIG_METHODS
+  # subscribe to active support notification on module usage
+  subscribe_action
 end

@@ -1,0 +1,13 @@
+{
+  "key": {
+    "description": "index key used for the table",
+    "value_type": "string",
+    "rules": {
+      "absent": {
+        "impact": "negative",
+        "message": "There is no index key used for $table table, and can result into full scan of the $table table",
+        "suggestion": "Please use index from possible_keys: $possible_keys or add new one to $table table as per the requirements."
+      }
+    }
+  }
+}
