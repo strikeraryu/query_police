@@ -122,6 +122,8 @@ module QueryPolice
         final_message += pretty_analysis_for(impact, opts_) if value.present?
       end
 
+      return final_message unless final_message.present?
+
       opts.dig("skip_footer").present? ? final_message : final_message + @footer
     end
 
