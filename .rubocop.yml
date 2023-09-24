@@ -16,7 +16,10 @@ Style/HashTransformValues:
   Enabled: true
 
 Style/HashEachMethods:
- Enabled: true 
+  Enabled: true 
+
+Metrics/ClassLength:
+  Max: 120
 
 Metrics/MethodLength:
   Max: 15
