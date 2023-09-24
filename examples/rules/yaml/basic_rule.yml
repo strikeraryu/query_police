@@ -13,6 +13,6 @@ type:
         possible keys to use.
       suggestion: 'Use index here. You can use index from possible key: $possible_keys
         or add new one to $table table as per the requirements.'
-      score:
+      debt:
         value: 200
         type: base

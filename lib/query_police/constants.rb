@@ -8,7 +8,8 @@ module QueryPolice
     }.freeze
     DEFAULT_ACTION_ENABLED = true
     DEFAULT_LOGGER_OPTIONS = {
-      "negative" => true
+      "negative" => true,
+      "caution" => true
     }.freeze
     DEFAULT_RULES_PATH = File.join(File.dirname(__FILE__), "rules.json")
     DEFAULT_VERBOSITY = "detailed"

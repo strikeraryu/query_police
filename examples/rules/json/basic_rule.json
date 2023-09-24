@@ -12,7 +12,7 @@
         "impact": "negative",
         "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
         "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements.",
-        "score": {
+        "debt": {
           "value": 200,
           "type": "base"
         }

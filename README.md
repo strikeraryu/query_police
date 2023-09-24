@@ -39,43 +39,43 @@ puts analysis.pretty_analysis
 ```
 **Results**
 
-**Note:** [Query score significance](#significance)  
+**Note:** [Query debt significance](#significance)  
 
 
 ```
-query_score: 330.0
+query_debt: 330.0
 
 +----------------------------------------------------------------------------------------------------------------------------------+
 |                                                              orders                                                              |
 +------------+---------------------------------------------------------------------------------------------------------------------+
-| score      | 200.0                                                                                                               |
+| debt      | 200.0                                                                                                               |
 +------------+---------------------------------------------------------------------------------------------------------------------+
 | column     | type                                                                                                                |
 | impact     | negative                                                                                                            |
-| tag_score  | 100.0                                                                                                               |
+| tag_debt  | 100.0                                                                                                               |
 | message    | Entire orders table is scanned to find matching rows, you have 0 possible keys to use.                              |
 | suggestion | Use index here. You can use index from possible key: absent or add new one to orders table as per the requirements. |
 +------------+---------------------------------------------------------------------------------------------------------------------+
 | column     | possible_keys                                                                                                       |
 | impact     | negative                                                                                                            |
-| tag_score  | 50.0                                                                                                                |
+| tag_debt  | 50.0                                                                                                                |
 | message    | There are no possible keys for orders table to be used, can result into full scan                                   |
 | suggestion | Please add index keys for orders table                                                                              |
 +------------+---------------------------------------------------------------------------------------------------------------------+
 | column     | key                                                                                                                 |
 | impact     | negative                                                                                                            |
-| tag_score  | 50.0                                                                                                                |
+| tag_debt  | 50.0                                                                                                                |
 | message    | There is no index key used for orders table, and can result into full scan of the orders table                      |
 | suggestion | Please use index from possible_keys: absent or add new one to orders table as per the requirements.                 |
 +------------+---------------------------------------------------------------------------------------------------------------------+
 +------------------------------------------------------------------------------------+
 |                                       users                                        |
 +------------+-----------------------------------------------------------------------+
-| score      | 130.0                                                                 |
+| debt      | 130.0                                                                 |
 +------------+-----------------------------------------------------------------------+
 | column     | detailed#used_columns                                                 |
 | impact     | negative                                                              |
-| tag_score  | 130.0                                                                 |
+| tag_debt  | 130.0                                                                 |
 | message    | You have selected 18 columns, You should not select too many columns. |
 | suggestion | Please only select required columns.                                  |
 +------------+-----------------------------------------------------------------------+
@@ -92,36 +92,36 @@ puts analysis.pretty_analysis_for('positive') # impact negative, positive, cauti
 # +----------------------------------------------------------+         
 # |                          users                           |         
 # +-----------+----------------------------------------------+         
-# | score     | 330.0                                        |         
+# | debt     | 330.0                                        |         
 # +-----------+----------------------------------------------+         
 # | column    | select_type                                  |
 # | impact    | positive                                     |
-# | tag_score | 0                                            |
+# | tag_debt | 0                                            |
 # | message   | A simple query without subqueries or unions. |
 # +-----------+----------------------------------------------+
 ```
 
 ### Analysis for Multiple Impacts
 
-To print pretty analysis for multiple impacts, default: `{ 'negative' => true }`
+To print pretty analysis for multiple impacts, default: `{ 'negative' => true, 'caution' => true }`
 ```ruby
 analysis = QueryPolice.analyse("select * from users")
 puts analysis.pretty_analysis({'negative' => true, 'positive' => true})
 ```
 
-### Query score
+### Query debt
 
-To get the final score of the query
+To get the final debt of the query
 ```ruby
 analysis = QueryPolice.analyse("select * from users")
-puts analysis.query_score
+puts analysis.query_debt
 
 # puts
 # 100.0
 ```
 
 #### Significance
-Query score signifies the quality of the query, high value represents a bad query. 
+Query debt signifies the quality of the query, high value represents a bad query. 
 - `0 - 199` - Good Query
 - `200 - 499` - Potentially Bad query
 - `>=500` - Bad query
@@ -139,11 +139,11 @@ puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 40})
 # +--------------------------------------------------+
 # |                      users                       |
 # +-----------+--------------------------------------+
-# | score     | 330.0                                |
+# | debt     | 330.0                                |
 # +-----------+--------------------------------------+
 # | column    | select_type                          |
 # | impact    | positive                             |
-# | tag_score | 0                                    |
+# | tag_debt | 0                                    |
 # | message   | A simple query without subqueries or |
 # |           | unions.                              |
 # +-----------+--------------------------------------+
@@ -156,11 +156,11 @@ puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 20})
 # +--------------------------------+
 # |             users              |
 # +-----------+--------------------+
-# | score     | 330.0              |
+# | debt     | 330.0              |
 # +-----------+--------------------+
 # | column    | select_type        |
 # | impact    | positive           |
-# | tag_score | 0                  |
+# | tag_debt | 0                  |
 # | message   | A simple query     |
 # |           | without subqueries |
 # |           | or unions.         |
@@ -190,11 +190,11 @@ end
 # +----------------------------------------------------------+         
 # |                          users                           |         
 # +-----------+----------------------------------------------+         
-# | score     | 330.0                                        |         
+# | debt     | 330.0                                        |         
 # +-----------+----------------------------------------------+         
 # | column    | select_type                                  |
 # | impact    | positive                                     |
-# | tag_score | 0                                            |
+# | tag_debt | 0                                            |
 # | message   | A simple query without subqueries or unions. |
 # +-----------+----------------------------------------------+
 # Please check more details with this link...
@@ -255,7 +255,7 @@ QueryPolice.configure do |config|
   config.logger_options = {'negative' => true}
 end
 
-# default logger_config: {'negative' => true}
+# default logger_config: {'negative' => true, 'caution' => true}
 # options negative: <Boolean>, positive: <Boolean>, caution: <Boolean>, wrap_width: <Integer>, skip_footer: <Boolean>
 ```
 
@@ -284,7 +284,7 @@ JSON
       "impact": "<string>",
       "message": "<string>",
       "suggestion": "<string>",
-      "score": {
+      "debt": {
         "value": "<integer>",
         "type": "<string>"
       } 
@@ -304,7 +304,7 @@ YAML
       impact: <string>
       message: <string>
       suggestion: <string>
-      score:
+      debt:
         value: <integer>
         type: <string>
 ```
@@ -326,9 +326,9 @@ YAML
     - `caution`
 - `message` - the message needs to provide the significance of the rule
 - `suggestion` - suggestion on how we can fix the issue
-- `score` - score-related config that will be affected to final query score
-    - `value` - value that will be added to the query score 
-    -  `type` - the type of scoring that will be added to the query score
+- `debt` - debt-related config that will be affected to final query debt
+    - `value` - value that will be added to the query debt 
+    -  `type` - the type of scoring that will be added to the query debt
         - `base`- value
         - `relative` - value * (amount for that column in query)
         - `threshold_relative` - (value - (threshold amount)) * (amount for that column in query)
@@ -369,7 +369,7 @@ File: [JSON](examples/rules/json/basic_rule.json) | [YAML](examples/rules/yaml/b
       "impact": "negative",
       "message": "Entire $table table is scanned to find matching rows, you have $amount_possible_keys possible keys to use.",
       "suggestion": "Use index here. You can use index from possible key: $possible_keys or add new one to $table table as per the requirements.",
-      "score": {
+      "debt": {
         "value": 200,
         "type": "base" 
       }
@@ -452,7 +452,7 @@ File: [JSON](examples/rules/json/complex_detailed_rule.json) | [YAML](examples/r
       "impact": "negative",
       "message": "You have selected $amount columns, You should not select too many columns.",
       "suggestion": "Please only select required columns.",
-      "score": {
+      "debt": {
         "value": 10,
         "type": "threshold_relative" 
       }
@@ -645,7 +645,7 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
   'users' => {                        
     'id'=>1,                    
     'name' => 'users',               # table alias user in the execution plan
-    'score' => <float>               # score for the table   
+    'debt' => <float>               # debt for the table   
     'analysis' => {
       'type' => {                    # attribute name
         'value' => <string>,         # raw value of attribute in execution plan
@@ -654,7 +654,7 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
             'impact'=> <string>,     # negative, positive, cautions
             'warning'=> <string>,    # Eg. 'warning to represent the issue'
             'suggestions'=> <string> # Eg. 'some follow-up suggestions'
-            'score' => <float>       # score for the tag
+            'debt' => <float>       # debt for the tag
           }
         }
       }
@@ -670,7 +670,7 @@ Analysis object stores a detailed analysis report of a relation inside `:tables 
     'amount' => 10,
     'warning' => 'warning to represent the issue',
     'suggestions' => 'some follow up suggestions',
-    'score' => 100.0
+    'debt' => 100.0
   }
 }
 ```

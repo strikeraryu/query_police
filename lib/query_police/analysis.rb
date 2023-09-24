@@ -21,7 +21,7 @@ module QueryPolice
     #   "users" => {
     #     "id" => 1,
     #     "name" => "users",
-    #     "score" => 100.0,
+    #     "debt" => 100.0,
     #     "analysis" => {
     #       "type" => {
     #         "value" => all",
@@ -30,7 +30,7 @@ module QueryPolice
     #             "impact" => "negative",
     #             "warning" => "warning to represent the issue",
     #             "suggestions" => "some follow up suggestions",
-    #             "score" => 100.0
+    #             "debt" => 100.0
     #           }
     #         }
     #       }
@@ -44,15 +44,15 @@ module QueryPolice
     #      "amount" => 10,
     #      "warning" => "warning to represent the issue",
     #      "suggestions" => "some follow up suggestions",
-    #      "score" => 100.0
+    #      "debt" => 100.0
     #    }
     #  }
     def initialize(footer: nil)
       @footer = footer || ""
       @summary = {}
-      @summary_score = 0
+      @summary_debt = 0
       @table_count = 0
-      @table_score = 0
+      @table_debt = 0
       @tables = {}
     end
 
@@ -65,7 +65,7 @@ module QueryPolice
     #  {
     #    "id" => 1,
     #    "name" => "users",
-    #    "score" => 100.0
+    #    "debt" => 100.0
     #    "analysis" => {
     #      "type" => [
     #        {
@@ -73,33 +73,33 @@ module QueryPolice
     #          "impact" => "negative",
     #          "warning" => "warning to represent the issue",
     #          "suggestions" => "some follow up suggestions",
-    #          "score" => 100.0
+    #          "debt" => 100.0
     #        }
     #      ]
     #    }
     #  }
-    # @param score [Integer] score for that table
-    def register_table(name, table_analysis, score)
+    # @param debt [Integer] debt for that table
+    def register_table(name, table_analysis, debt)
       @table_count += 1
       tables.merge!(
         {
           name => {
             "id" => @table_count,
             "name" => name,
-            "score" => score,
+            "debt" => debt,
             "analysis" => table_analysis
           }
         }
       )
 
-      @table_score += score
+      @table_debt += debt
     end
 
     # register summary based in different attributes
     # @param summary [Hash] hash of summary of analysis
-    def register_summary(summary, score)
+    def register_summary(summary, debt)
       self.summary.merge!(summary)
-      @summary_score += score
+      @summary_debt += debt
     end
 
     # to get analysis in pretty format with warnings and suggestions
@@ -113,7 +113,7 @@ module QueryPolice
     #   skip_footer: <boolean>
     # ]
     # @return [String] pretty analysis
-    def pretty_analysis(opts = { "negative" => true })
+    def pretty_analysis(opts = { "negative" => true, "caution" => true })
       final_message = ""
       opts = opts.with_indifferent_access
 
@@ -135,7 +135,7 @@ module QueryPolice
     # ]
     # @return [String] pretty analysis
     def pretty_analysis_for(impact, opts = {})
-      final_message = "query_score: #{query_score}\n\n"
+      final_message = "query_debt: #{query_debt}\n\n"
 
       query_analytic.each_key do |table|
         table_message = query_pretty_analysis(table, { impact => true }.merge(opts))
@@ -146,9 +146,9 @@ module QueryPolice
       opts.dig("skip_footer").present? ? final_message : final_message + @footer
     end
 
-    # to get the final score
-    def query_score
-      @table_score + @summary_score
+    # to get the final debt
+    def query_debt
+      @table_debt + @summary_debt
     end
 
     # to get analysis in pretty format with warnings and suggestions for a table
@@ -165,7 +165,7 @@ module QueryPolice
     def query_pretty_analysis(table, opts)
       table_analytics = Terminal::Table.new(title: table)
       table_analytics_present = false
-      table_analytics.add_row(["score", query_analytic.dig(table, "score")])
+      table_analytics.add_row(["debt", query_analytic.dig(table, "debt")])
 
       opts = opts.with_indifferent_access
 
@@ -200,7 +200,7 @@ module QueryPolice
       tables.merge(
         "summary" => {
           "name" => "summary",
-          "score" => @summary_score,
+          "debt" => @summary_debt,
           "analysis" => summary
         }
       )
@@ -215,7 +215,7 @@ module QueryPolice
       wrap_width = opts.dig("wrap_width")
 
       tag_message << ["impact", impact(variable_opts.merge({ "colours" => true }))]
-      tag_message << ["tag_score", score(variable_opts.merge({ "colours" => true }))]
+      tag_message << ["tag_debt", debt(variable_opts.merge({ "colours" => true }))]
       tag_message << ["message", Helper.word_wrap(message, wrap_width)]
       tag_message << ["suggestion", Helper.word_wrap(suggestion, wrap_width)] if suggestion.present?
 

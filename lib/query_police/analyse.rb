@@ -6,31 +6,31 @@ module QueryPolice
   module Analyse
     def table(table, summary, rules_config)
       table_analysis = {}
-      table_score = 0
+      table_debt = 0
 
       table.each do |column, value|
         summary = add_summary(summary, column, value)
         next unless rules_config.dig(column).present?
 
         table_analysis.merge!({ column => apply_rules(rules_config.dig(column), value) })
-        table_score += table_analysis.dig(column, "tags").map { |_, tag| tag.dig("score") }.sum.to_f
+        table_debt += table_analysis.dig(column, "tags").map { |_, tag| tag.dig("debt") }.sum.to_f
       end
 
-      [table_analysis, summary, table_score]
+      [table_analysis, summary, table_debt]
     end
 
     def generate_summary(rules_config, summary)
       summary_analysis = {}
-      summary_score = 0
+      summary_debt = 0
 
       summary.each do |column, value|
         next unless rules_config.dig(column).present?
 
         summary_analysis.merge!({ column => apply_rules(rules_config.dig(column), value) })
-        summary_score += summary_analysis.dig(column, "tags").map { |_, tag| tag.dig("score") }.sum.to_f
+        summary_debt += summary_analysis.dig(column, "tags").map { |_, tag| tag.dig("debt") }.sum.to_f
       end
 
-      [summary_analysis, summary_score]
+      [summary_analysis, summary_debt]
     end
 
     class << self
@@ -54,7 +54,7 @@ module QueryPolice
           next unless tag_rule.present?
 
           column_analyse["tags"].merge!(
-            { tag => Transform.tag_rule(tag_rule).merge!({ "score" => generate_score(tag_rule, amount) }) }
+            { tag => Transform.tag_rule(tag_rule).merge!({ "debt" => generate_debt(tag_rule, amount) }) }
           )
         end
 
@@ -69,7 +69,7 @@ module QueryPolice
         if threshold_rule.present? && amount >= threshold_rule.dig("amount")
           return {
             "threshold" => Transform.tag_rule(threshold_rule).merge(
-              { "amount" => amount, "score" => generate_score(threshold_rule, amount) }
+              { "amount" => amount, "debt" => generate_debt(threshold_rule, amount) }
             )
           }
         end
@@ -77,16 +77,16 @@ module QueryPolice
         {}
       end
 
-      def generate_score(tag_rule, amount)
-        score = tag_rule.dig("score", "value")
+      def generate_debt(tag_rule, amount)
+        debt = tag_rule.dig("debt", "value")
 
-        case tag_rule.dig("score", "type").to_s
+        case tag_rule.dig("debt", "type").to_s
         when "base"
-          score.to_f
+          debt.to_f
         when "relative"
-          amount.to_f * score.to_f
+          amount.to_f * debt.to_f
         when "threshold_relative"
-          (amount - tag_rule.dig("amount")).to_f * score.to_f
+          (amount - tag_rule.dig("amount")).to_f * debt.to_f
         else
           0
         end

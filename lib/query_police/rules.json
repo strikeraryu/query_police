@@ -63,7 +63,7 @@
         "impact": "negative",
         "message": "The entire $table table is scanned to find matching rows. There are $amount_possible_keys possible keys that could be used",
         "suggestion": "Use an index in this scenario. You can use the index from possible key: $possible_keys or add a new index to the $table table as needed",
-        "score": {
+        "debt": {
           "value": 100,
           "type": "base"
         }
@@ -91,7 +91,7 @@
         "impact": "negative",
         "message": "There are no possible keys for the $table table, which can lead to a full scan",
         "suggestion": "Add appropriate index keys for the $table table",
-        "score": {
+        "debt": {
           "value": 50,
           "type": "base"
         }
@@ -101,7 +101,7 @@
         "impact": "negative",
         "message": "There are $amount possible keys for the $table table; having too many index keys can be suboptimal",
         "suggestion": "Check for unnecessary indexes in the $table table",
-        "score": {
+        "debt": {
           "value": 20,
           "type": "threshold_relative"
         }
@@ -116,7 +116,7 @@
         "impact": "negative",
         "message": "No index key is being used for the $table table, which may result in a full table scan",
         "suggestion": "Use an index from possible_keys: $possible_keys or add a new one to the $table table as required",
-        "score": {
+        "debt": {
           "value": 50,
           "type": "base"
         }
@@ -142,7 +142,7 @@
         "impact": "negative",
         "message": "A file-based sorting algorithm is being used for your result. This could be inefficient and lead to longer query times",
         "suggestion": "Ensure that the result set is small or use a proper index",
-        "score": {
+        "debt": {
           "value": 50,
           "type": "base"
         }
@@ -161,7 +161,7 @@
         "impact": "negative",
         "message": "The query wasn't thoroughly analyzed as it refers to a constant value with no matching row in the respective tables",
         "suggestion": "Add rows that correspond to the constant value or modify the reference. You can associate the reference with a constant value that has a corresponding row or refer to a column with a matching value",
-        "score": {
+        "debt": {
           "value": 1000,
           "type": "base"
         }
@@ -177,7 +177,7 @@
         "impact": "negative",
         "message": "You have selected $amount columns, which could be excessive",
         "suggestion": "Please only select the required columns",
-        "score": {
+        "debt": {
           "value": 10,
           "type": "threshold_relative"
         }
@@ -193,7 +193,7 @@
         "impact": "negative",
         "message": "The read cost of the query is $amount, which is considered too high. It's likely that you are scanning too many rows",
         "suggestion": "Please optimize your query by using proper indexes, querying only the required data, and ensuring appropriate joins",
-        "score": {
+        "debt": {
           "value": 0.01,
           "type": "relative"
         }
@@ -209,7 +209,7 @@
         "impact": "negative",
         "message": "The cardinality of the table is $amount, which is considered too high",
         "suggestion": "Please optimize your query by using proper indexes, querying only the required data, and ensuring appropriate joins",
-        "score": {
+        "debt": {
           "value": 0.01,
           "type": "relative"
         }

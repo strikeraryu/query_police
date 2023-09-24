@@ -8,6 +8,6 @@ detailed#used_columns:
       impact: negative
       message: You have selected $amount columns, You should not select too many columns.
       suggestion: Please only select required columns.
-      score:
+      debt:
         value: 10
         type: threshold_relative

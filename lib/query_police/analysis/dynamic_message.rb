@@ -54,13 +54,13 @@ module QueryPolice
         opts.dig("colours").present? ? impact.send(IMPACTS.dig(impact, "colour")) : impact
       end
 
-      def score(opts)
+      def debt(opts)
         table, column, tag = opts.values_at("table", "column", "tag")
 
         impact = query_analytic.dig(table, "analysis", column, "tags", tag, "impact")
-        score = query_analytic.dig(table, "analysis", column, "tags", tag, "score")
+        debt = query_analytic.dig(table, "analysis", column, "tags", tag, "debt")
 
-        opts.dig("colours").present? ? score.to_s.send(IMPACTS.dig(impact, "colour")) : score
+        opts.dig("colours").present? ? debt.to_s.send(IMPACTS.dig(impact, "colour")) : debt
       end
 
       def table(opts)

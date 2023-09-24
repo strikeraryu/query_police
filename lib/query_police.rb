@@ -47,9 +47,9 @@ module QueryPolice
     query_plan = Explain.full_explain(relation, config.verbosity)
 
     query_plan.each do |table|
-      table_analysis, summary, table_score = Analyse.table(table, summary, rules_config)
+      table_analysis, summary, table_debt = Analyse.table(table, summary, rules_config)
 
-      analysis.register_table(table.dig("table"), table_analysis, table_score)
+      analysis.register_table(table.dig("table"), table_analysis, table_debt)
     end
 
     analysis.register_summary(*Analyse.generate_summary(rules_config, summary))
