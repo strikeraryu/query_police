@@ -135,7 +135,7 @@ module QueryPolice
     # ]
     # @return [String] pretty analysis
     def pretty_analysis_for(impact, opts = {})
-      final_message = "query_debt: #{query_debt}\n\n"
+      final_message = ""
 
       query_analytic.each_key do |table|
         table_message = query_pretty_analysis(table, { impact => true }.merge(opts))
@@ -143,6 +143,9 @@ module QueryPolice
         final_message += "#{table_message}\n" if table_message.present?
       end
 
+      return final_message unless final_message.present?
+
+      final_message = "query_debt: #{query_debt}\n\n#{final_message}"
       opts.dig("skip_footer").present? ? final_message : final_message + @footer
     end
 
