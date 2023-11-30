@@ -8,6 +8,7 @@ module QueryPolice
     def initialize
       @action_enabled = Constants::DEFAULT_ACTION_ENABLED
       @analysis_footer = Constants::DEFAULT_ANALYSIS_FOOTER
+      @app_dir = Constants::DEFAULT_APP_DIR
       @logger_options = Constants::DEFAULT_LOGGER_OPTIONS
       @rules_path = Constants::DEFAULT_RULES_PATH
       @verbosity = Constants::DEFAULT_VERBOSITY
@@ -17,6 +18,6 @@ module QueryPolice
       @action_enabled.present?
     end
 
-    attr_accessor :action_enabled, :analysis_footer, :logger_options, :rules_path, :verbosity
+    attr_accessor :action_enabled, :analysis_footer, :app_dir, :logger_options, :rules_path, :verbosity
   end
 end

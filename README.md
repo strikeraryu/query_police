@@ -6,7 +6,7 @@ It is a rule-based engine with custom rules to Analyze Active-Record relations u
 
 Install the gem and add it to the application's Gemfile by executing:
 
-    $ gem 'query_police', '~> 0.1.6.beta'
+    $ gem 'query_police', '~> 0.1.7.beta'
 
 If the bundler is not being used to manage dependencies, install the gem by executing:
 

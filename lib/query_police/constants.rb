@@ -7,6 +7,7 @@ module QueryPolice
       "value_type" => "string"
     }.freeze
     DEFAULT_ACTION_ENABLED = true
+    DEFAULT_APP_DIR = "app"
     DEFAULT_LOGGER_OPTIONS = {
       "negative" => true,
       "caution" => true

@@ -6,6 +6,10 @@ module QueryPolice
   module Helper
     DEFAULT_WORD_WRAP_WIDTH = 100
 
+    def app_file_trace(app_dir)
+      caller.select { |v| v =~ %r{#{app_dir}/} }
+    end
+
     def flatten_hash(hash, prefix_key = "")
       flat_hash = {}
 
@@ -57,7 +61,7 @@ module QueryPolice
       wrapped_string.strip
     end
 
-    module_function :flatten_hash, :logger, :load_config, :word_wrap
+    module_function :app_file_trace, :flatten_hash, :logger, :load_config, :word_wrap
   end
 
   private_constant :Helper
