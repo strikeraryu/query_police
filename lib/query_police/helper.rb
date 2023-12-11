@@ -10,6 +10,12 @@ module QueryPolice
       caller.select { |v| v =~ %r{#{app_dir}/} }
     end
 
+    def colorize(string, colour)
+      return string unless String.colors.include?(colour&.to_sym)
+
+      string.send(colour)
+    end
+
     def flatten_hash(hash, prefix_key = "")
       flat_hash = {}
 
@@ -65,7 +71,7 @@ module QueryPolice
       wrapped_string.strip
     end
 
-    module_function :app_file_trace, :flatten_hash, :logger, :load_config, :word_wrap
+    module_function :app_file_trace, :colorize, :flatten_hash, :logger, :load_config, :word_wrap
   end
 
   private_constant :Helper

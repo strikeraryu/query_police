@@ -148,7 +148,7 @@ module QueryPolice
       range = query_debt_range
       debt_message = query_debt.to_s
       debt_message += " (#{range.dig("message")})" if range&.dig("message").present?
-      debt_message = debt_message.colorize(range.dig("colour")&.to_sym) if range&.dig("colour").present?
+      debt_message = Helper.colorize(debt_message, range.dig("colour")&.to_sym) if range&.dig("colour").present?
 
       Terminal::Table.new do |t|
         t.add_row(["Total Query Debt", debt_message])
