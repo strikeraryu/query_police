@@ -47,8 +47,9 @@ module QueryPolice
     #      "debt" => 100.0
     #    }
     #  }
-    def initialize(footer: nil)
-      @footer = footer || ""
+    def initialize(config: nil)
+      @debt_ranges = config&.analysis_debt_ranges || []
+      @footer = config&.analysis_footer || ""
       @summary = {}
       @summary_debt = 0
       @table_count = 0
@@ -117,13 +118,15 @@ module QueryPolice
       final_message = ""
       opts = opts.with_indifferent_access
 
-      opts.slice(*IMPACTS.keys).each do |impact, value|
-        opts_ = opts.slice("wrap_width").merge({ "skip_footer" => true })
-        final_message += pretty_analysis_for(impact, opts_) if value.present?
+      query_analytic.each_key do |table|
+        table_message = query_pretty_analysis(table, opts)
+
+        final_message += "#{table_message}\n" if table_message.present?
       end
 
       return final_message unless final_message.present?
 
+      final_message = "\n#{pretty_query_debt}\n\n#{final_message}"
       opts.dig("skip_footer").present? ? final_message : final_message + @footer
     end
 
@@ -137,23 +140,36 @@ module QueryPolice
     # ]
     # @return [String] pretty analysis
     def pretty_analysis_for(impact, opts = {})
-      final_message = ""
+      pretty_analysis({ impact => true }.merge(opts))
+    end
 
-      query_analytic.each_key do |table|
-        table_message = query_pretty_analysis(table, { impact => true }.merge(opts))
+    # to get the final debt in pretty form
+    def pretty_query_debt
+      range = query_debt_range
+      debt_message = query_debt.to_s
+      debt_message += " (#{range.dig("message")})" if range&.dig("message").present?
+      debt_message = Helper.colorize(debt_message, range.dig("colour")&.to_sym) if range&.dig("colour").present?
 
-        final_message += "#{table_message}\n" if table_message.present?
+      Terminal::Table.new do |t|
+        t.add_row(["Total Query Debt", debt_message])
       end
-
-      return final_message unless final_message.present?
-
-      final_message = "query_debt: #{query_debt}\n\n#{final_message}"
-      opts.dig("skip_footer").present? ? final_message : final_message + @footer
     end
 
     # to get the final debt
     def query_debt
       @table_debt + @summary_debt
+    end
+
+    # to get the final debt range
+    def query_debt_range
+      return nil unless @debt_ranges.present?
+
+      @debt_ranges.each do |range_config|
+        range_config = range_config.wida
+        return range_config if range_config.dig("range")&.include?(query_debt)
+      end
+
+      nil
     end
 
     # to get analysis in pretty format with warnings and suggestions for a table
@@ -170,7 +186,7 @@ module QueryPolice
     def query_pretty_analysis(table, opts)
       table_analytics = Terminal::Table.new(title: table)
       table_analytics_present = false
-      table_analytics.add_row(["debt", query_analytic.dig(table, "debt")])
+      table_analytics.add_row(["Debt", query_analytic.dig(table, "debt")])
 
       opts = opts.with_indifferent_access
 
@@ -180,7 +196,7 @@ module QueryPolice
 
         table_analytics_present = true
         table_analytics.add_separator
-        table_analytics.add_row(["column", column])
+        table_analytics.add_row(["Column", column])
         column_analytics.each { |row| table_analytics.add_row(row) }
       end
 
@@ -212,17 +228,18 @@ module QueryPolice
     end
 
     def tag_analytic(table, column, tag, opts)
-      tag_message = []
-
       variable_opts = { "table" => table, "column" => column, "tag" => tag }
       message = dynamic_message(variable_opts.merge({ "type" => "message" }))
       suggestion = dynamic_message(variable_opts.merge({ "type" => "suggestion" }))
       wrap_width = opts.dig("wrap_width")
 
-      tag_message << ["impact", impact(variable_opts.merge({ "colours" => true }))]
-      tag_message << ["tag_debt", debt(variable_opts.merge({ "colours" => true }))]
-      tag_message << ["message", Helper.word_wrap(message, wrap_width)]
-      tag_message << ["suggestion", Helper.word_wrap(suggestion, wrap_width)] if suggestion.present?
+      tag_message = [
+        ["Value", Helper.word_wrap(value(variable_opts).to_s, width: wrap_width, cut: true)],
+        ["Impact", impact(variable_opts.merge({ "colours" => true }))],
+        ["Tag Debt", debt(variable_opts.merge({ "colours" => true }))],
+        ["Message", Helper.word_wrap(message, width: wrap_width)]
+      ]
+      tag_message << ["Suggestion", Helper.word_wrap(suggestion, width: wrap_width)] if suggestion.present?
 
       tag_message
     end

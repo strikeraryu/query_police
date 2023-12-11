@@ -28,7 +28,9 @@ module QueryPolice
 
   CONFIG_METHODS = %i[
     action_enabled action_enabled? action_enabled=
+    analysis_debt_ranges analysis_debt_ranges=
     analysis_footer analysis_footer=
+    app_dir app_dir=
     logger_options logger_options=
     rules_path rules_path=
     verbosity verbosity=
@@ -41,7 +43,7 @@ module QueryPolice
   # @return [QueryPolice::Analysis] analysis - contains the analysis of the query
   def analyse(relation)
     rules_config = Helper.load_config(config.rules_path)
-    analysis = Analysis.new(footer: config.analysis_footer)
+    analysis = Analysis.new(config: config)
     summary = {}
 
     query_plan = Explain.full_explain(relation, config.verbosity)
@@ -91,9 +93,15 @@ module QueryPolice
 
       analysis = analyse(query)
       Helper.logger(analysis.pretty_analysis(config.logger_options))
+      last_file_trace = Helper.app_file_trace(config.app_dir)[0]
+
+      payload = {
+        query: query,
+        file: last_file_trace
+      }.with_indifferent_access
 
       @actions.each do |action|
-        action.call(analysis)
+        action.call(analysis, payload)
       end
     end
 

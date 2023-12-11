@@ -51,7 +51,7 @@ module QueryPolice
 
         impact = query_analytic.dig(table, "analysis", column, "tags", tag, "impact")
 
-        opts.dig("colours").present? ? impact.send(IMPACTS.dig(impact, "colour")) : impact
+        opts.dig("colours").present? ? Helper.colorize(impact, IMPACTS.dig(impact, "colour")&.to_sym) : impact
       end
 
       def debt(opts)
@@ -60,7 +60,7 @@ module QueryPolice
         impact = query_analytic.dig(table, "analysis", column, "tags", tag, "impact")
         debt = query_analytic.dig(table, "analysis", column, "tags", tag, "debt")
 
-        opts.dig("colours").present? ? debt.to_s.send(IMPACTS.dig(impact, "colour")) : debt
+        opts.dig("colours").present? ? Helper.colorize(debt.to_s, IMPACTS.dig(impact, "colour")&.to_sym) : debt
       end
 
       def table(opts)

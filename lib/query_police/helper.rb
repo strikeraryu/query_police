@@ -6,6 +6,16 @@ module QueryPolice
   module Helper
     DEFAULT_WORD_WRAP_WIDTH = 100
 
+    def app_file_trace(app_dir)
+      caller.select { |v| v =~ %r{#{app_dir}/} }
+    end
+
+    def colorize(string, colour)
+      return string unless String.colors.include?(colour&.to_sym)
+
+      string.send(colour)
+    end
+
     def flatten_hash(hash, prefix_key = "")
       flat_hash = {}
 
@@ -43,21 +53,25 @@ module QueryPolice
       end
     end
 
-    def word_wrap(string, width = DEFAULT_WORD_WRAP_WIDTH)
+    def word_wrap(string, width: DEFAULT_WORD_WRAP_WIDTH, cut: false)
       width ||= DEFAULT_WORD_WRAP_WIDTH
       words = string.split
       wrapped_string = ""
 
       words.each do |word|
         last_line_size = (wrapped_string.split("\n")[-1]&.size || 0)
-        wrapped_string = wrapped_string.strip + "\n" if (last_line_size + word.size) > width
+        if (last_line_size + word.size) > width
+          return wrapped_string.strip + "..." if cut.present?
+
+          wrapped_string = wrapped_string.strip + "\n"
+        end
         wrapped_string += "#{word} "
       end
 
       wrapped_string.strip
     end
 
-    module_function :flatten_hash, :logger, :load_config, :word_wrap
+    module_function :app_file_trace, :colorize, :flatten_hash, :logger, :load_config, :word_wrap
   end
 
   private_constant :Helper
