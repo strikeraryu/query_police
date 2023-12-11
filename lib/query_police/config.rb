@@ -7,6 +7,7 @@ module QueryPolice
   class Config
     def initialize
       @action_enabled = Constants::DEFAULT_ACTION_ENABLED
+      @analysis_debt_ranges = Constants::DEFAULT_DEBT_RANGES
       @analysis_footer = Constants::DEFAULT_ANALYSIS_FOOTER
       @app_dir = Constants::DEFAULT_APP_DIR
       @logger_options = Constants::DEFAULT_LOGGER_OPTIONS
@@ -18,6 +19,7 @@ module QueryPolice
       @action_enabled.present?
     end
 
-    attr_accessor :action_enabled, :analysis_footer, :app_dir, :logger_options, :rules_path, :verbosity
+    attr_accessor :action_enabled, :analysis_debt_ranges, :analysis_footer, :app_dir, :logger_options, :rules_path,
+                  :verbosity
   end
 end

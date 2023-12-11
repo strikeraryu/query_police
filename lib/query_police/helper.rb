@@ -47,14 +47,18 @@ module QueryPolice
       end
     end
 
-    def word_wrap(string, width = DEFAULT_WORD_WRAP_WIDTH)
+    def word_wrap(string, width: DEFAULT_WORD_WRAP_WIDTH, cut: false)
       width ||= DEFAULT_WORD_WRAP_WIDTH
       words = string.split
       wrapped_string = ""
 
       words.each do |word|
         last_line_size = (wrapped_string.split("\n")[-1]&.size || 0)
-        wrapped_string = wrapped_string.strip + "\n" if (last_line_size + word.size) > width
+        if (last_line_size + word.size) > width
+          return wrapped_string.strip + "..." if cut.present?
+
+          wrapped_string = wrapped_string.strip + "\n"
+        end
         wrapped_string += "#{word} "
       end
 

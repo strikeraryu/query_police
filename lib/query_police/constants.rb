@@ -8,6 +8,11 @@ module QueryPolice
     }.freeze
     DEFAULT_ACTION_ENABLED = true
     DEFAULT_APP_DIR = "app"
+    DEFAULT_DEBT_RANGES = [
+      { "range" => (0...200), "message" => "Good Query", "colour" => "green" },
+      { "range" => (200...500), "message" => "Potentially Bad Query", "colour" => "yellow" },
+      { "range" => (500...nil), "message" => "Bad Query", "colour" => "red" }
+    ].freeze
     DEFAULT_LOGGER_OPTIONS = {
       "negative" => true,
       "caution" => true

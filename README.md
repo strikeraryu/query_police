@@ -43,42 +43,50 @@ puts analysis.pretty_analysis
 
 
 ```
-query_debt: 330.0
++------------------+-------------------------------+
+| Total Query Debt | 330.0 (Potentially Bad Query) |
++------------------+-------------------------------+
 
-+----------------------------------------------------------------------------------------------------------------------------------+
-|                                                              orders                                                              |
-+------------+---------------------------------------------------------------------------------------------------------------------+
-| debt      | 200.0                                                                                                               |
-+------------+---------------------------------------------------------------------------------------------------------------------+
-| column     | type                                                                                                                |
-| impact     | negative                                                                                                            |
-| tag_debt  | 100.0                                                                                                               |
-| message    | Entire orders table is scanned to find matching rows, you have 0 possible keys to use.                              |
-| suggestion | Use index here. You can use index from possible key: absent or add new one to orders table as per the requirements. |
-+------------+---------------------------------------------------------------------------------------------------------------------+
-| column     | possible_keys                                                                                                       |
-| impact     | negative                                                                                                            |
-| tag_debt  | 50.0                                                                                                                |
-| message    | There are no possible keys for orders table to be used, can result into full scan                                   |
-| suggestion | Please add index keys for orders table                                                                              |
-+------------+---------------------------------------------------------------------------------------------------------------------+
-| column     | key                                                                                                                 |
-| impact     | negative                                                                                                            |
-| tag_debt  | 50.0                                                                                                                |
-| message    | There is no index key used for orders table, and can result into full scan of the orders table                      |
-| suggestion | Please use index from possible_keys: absent or add new one to orders table as per the requirements.                 |
-+------------+---------------------------------------------------------------------------------------------------------------------+
-+------------------------------------------------------------------------------------+
-|                                       users                                        |
-+------------+-----------------------------------------------------------------------+
-| debt      | 130.0                                                                 |
-+------------+-----------------------------------------------------------------------+
-| column     | detailed#used_columns                                                 |
-| impact     | negative                                                              |
-| tag_debt  | 130.0                                                                 |
-| message    | You have selected 18 columns, You should not select too many columns. |
-| suggestion | Please only select required columns.                                  |
-+------------+-----------------------------------------------------------------------+
++-------------------------------------------------------------------------------------------------------------------+
+|                                                      orders                                                       |
++------------+------------------------------------------------------------------------------------------------------+
+| Debt       | 200.0                                                                                                |
++------------+------------------------------------------------------------------------------------------------------+
+| Column     | type                                                                                                 |
+| Value      | ALL                                                                                                  |
+| Impact     | negative                                                                                             |
+| Tag Debt   | 100.0                                                                                                |
+| Message    | The entire orders table is scanned to find matching rows. There are 0 possible keys that could be    |
+|            | used                                                                                                 |
+| Suggestion | Use an index in this scenario. You can use the index from possible key: absent or add a new index to |
+|            | the orders table as needed                                                                           |
++------------+------------------------------------------------------------------------------------------------------+
+| Column     | possible_keys                                                                                        |
+| Value      | absent                                                                                               |
+| Impact     | negative                                                                                             |
+| Tag Debt   | 50.0                                                                                                 |
+| Message    | There are no possible keys for the orders table, which can lead to a full scan                       |
+| Suggestion | Add appropriate index keys for the orders table                                                      |
++------------+------------------------------------------------------------------------------------------------------+
+| Column     | key                                                                                                  |
+| Value      | absent                                                                                               |
+| Impact     | negative                                                                                             |
+| Tag Debt   | 50.0                                                                                                 |
+| Message    | No index key is being used for the orders table, which may result in a full table scan               |
+| Suggestion | Use an index from possible_keys: absent or add a new one to the orders table as required             |
++------------+------------------------------------------------------------------------------------------------------+
++--------------------------------------------------------------------------------------------------+
+|                                              users                                               |
++------------+-------------------------------------------------------------------------------------+
+| Debt       | 130.0                                                                               |
++------------+-------------------------------------------------------------------------------------+
+| Column     | detailed#used_columns                                                               |
+| Value      | ["id", "name", "username", "phone_number", "dob", "email", "encrypted_password",... |
+| Impact     | negative                                                                            |
+| Tag Debt   | 130.0                                                                               |
+| Message    | You have selected 18 columns, which could be excessive                              |
+| Suggestion | Please only select the required columns                                             |
++------------+-------------------------------------------------------------------------------------+
 ```
 
 ###  Analysis for a Impact 
@@ -89,16 +97,21 @@ analysis = QueryPolice.analyse("select * from users")
 puts analysis.pretty_analysis_for('positive') # impact negative, positive, caution
 
 # puts
-# +----------------------------------------------------------+         
-# |                          users                           |         
-# +-----------+----------------------------------------------+         
-# | debt     | 330.0                                        |         
-# +-----------+----------------------------------------------+         
-# | column    | select_type                                  |
-# | impact    | positive                                     |
-# | tag_debt | 0                                            |
-# | message   | A simple query without subqueries or unions. |
-# +-----------+----------------------------------------------+
+# +------------------+-------------------------------+
+# | Total Query Debt | 330.0 (Potentially Bad Query) |
+# +------------------+-------------------------------+
+# 
+# +------------------------------------------------------------------------+
+# |                                 users                                  |
+# +----------+-------------------------------------------------------------+
+# | Debt     | 330.0                                                       |
+# +----------+-------------------------------------------------------------+
+# | Column   | select_type                                                 |
+# | Value    | SIMPLE                                                      |
+# | Impact   | positive                                                    |
+# | Tag Debt | 0                                                           |
+# | Message  | This query is a simple one without any subqueries or unions |
+# +----------+-------------------------------------------------------------+
 ```
 
 ### Analysis for Multiple Impacts
@@ -136,35 +149,46 @@ puts analysis.pretty_analysis_for('positive', {'wrap_width' => 40})
 puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 40})
 
 # puts
-# +--------------------------------------------------+
-# |                      users                       |
-# +-----------+--------------------------------------+
-# | debt     | 330.0                                |
-# +-----------+--------------------------------------+
-# | column    | select_type                          |
-# | impact    | positive                             |
-# | tag_debt | 0                                    |
-# | message   | A simple query without subqueries or |
-# |           | unions.                              |
-# +-----------+--------------------------------------+
+# +------------------+-------------------------------+
+# | Total Query Debt | 330.0 (Potentially Bad Query) |
+# +------------------+-------------------------------+
+# 
+# +---------------------------------------------------+
+# |                       users                       |
+# +----------+----------------------------------------+
+# | Debt     | 330.0                                  |
+# +----------+----------------------------------------+
+# | Column   | select_type                            |
+# | Value    | SIMPLE                                 |
+# | Impact   | positive                               |
+# | Tag Debt | 0                                      |
+# | Message  | This query is a simple one without any |
+# |          | subqueries or unions                   |
+# +----------+----------------------------------------+
 
 puts analysis.pretty_analysis_for('positive', {'wrap_width' => 20})
 # or
 puts analysis.pretty_analysis({'positive' => true, 'wrap_width' => 20})
 
 # puts
-# +--------------------------------+
-# |             users              |
-# +-----------+--------------------+
-# | debt     | 330.0              |
-# +-----------+--------------------+
-# | column    | select_type        |
-# | impact    | positive           |
-# | tag_debt | 0                  |
-# | message   | A simple query     |
-# |           | without subqueries |
-# |           | or unions.         |
-# +-----------+--------------------+
+# +------------------+-------------------------------+
+# | Total Query Debt | 330.0 (Potentially Bad Query) |
+# +------------------+-------------------------------+
+#
+# +-------------------------------+
+# |             users             |
+# +----------+--------------------+
+# | Debt     | 330.0              |
+# +----------+--------------------+
+# | Column   | select_type        |
+# | Value    | SIMPLE             |
+# | Impact   | positive           |
+# | Tag Debt | 0                  |
+# | Message  | This query is a    |
+# |          | simple one without |
+# |          | any subqueries or  |
+# |          | unions             |
+# +----------+--------------------+
 ```
 
 ### Skip footer
@@ -175,6 +199,31 @@ analysis = QueryPolice.analyse("select * from users")
 puts analysis.pretty_analysis_for('positive', {'skip_footer' => true})
 # or
 puts analysis.pretty_analysis({'positive' => true, 'skip_footer' => true})
+```
+### Analysis Debt Ranges
+To define ranges of debt for categorization of query. 
+Default Ranges:
+- `0 - 199` - Good Query
+- `200 - 499` - Potentially Bad query
+- `>=500` - Bad query
+
+```ruby
+QueryPolice.analysis_debt_ranges = [
+  { "range" => (0...200), "message" => "Good Query", "colour" => "green" },
+  { "range" => (200...500), "message" => "Potentially Bad Query", "colour" => "yellow" }
+]
+# or
+QueryPolice.configure do |config|
+  config.analysis_debt_ranges = [
+    { "range" => (0...200), "message" => "Good Query", "colour" => "green" },
+    { "range" => (200...500), "message" => "Potentially Bad Query", "colour" => "yellow" }
+  ]
+end
+
+# puts
+# +------------------+-------------------------------+
+# | Total Query Debt | 330.0 (Potentially Bad Query) |
+# +------------------+-------------------------------+
 ```
 
 ### Analysis Footer
@@ -187,16 +236,21 @@ QueryPolice.configure do |config|
 end
 
 # puts
-# +----------------------------------------------------------+         
-# |                          users                           |         
-# +-----------+----------------------------------------------+         
-# | debt     | 330.0                                        |         
-# +-----------+----------------------------------------------+         
-# | column    | select_type                                  |
-# | impact    | positive                                     |
-# | tag_debt | 0                                            |
-# | message   | A simple query without subqueries or unions. |
-# +-----------+----------------------------------------------+
+# +------------------+-------------------------------+
+# | Total Query Debt | 330.0 (Potentially Bad Query) |
+# +------------------+-------------------------------+
+#
+# +------------------------------------------------------------------------+
+# |                                 users                                  |
+# +----------+-------------------------------------------------------------+
+# | Debt     | 330.0                                                       |
+# +----------+-------------------------------------------------------------+
+# | Column   | select_type                                                 |
+# | Value    | SIMPLE                                                      |
+# | Impact   | positive                                                    |
+# | Tag Debt | 0                                                           |
+# | Message  | This query is a simple one without any subqueries or unions |
+# +----------+-------------------------------------------------------------+
 # Please check more details with this link...
 ```
 
@@ -208,6 +262,17 @@ QueryPolice.rules_path = 'path/to/rules/file.<json/yml>'
 # or
 QueryPolice.configure do |config|
   config.rules_path = 'path/to/rules/file.<json/yml>'
+end
+```
+
+### Custom app dir
+
+To define custom app dir for file tracing
+```ruby
+QueryPolice.app_dir = 'path/to/app'
+# or
+QueryPolice.configure do |config|
+  config.app_dir = 'path/to/app'
 end
 ```
 

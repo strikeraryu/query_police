@@ -28,6 +28,7 @@ module QueryPolice
 
   CONFIG_METHODS = %i[
     action_enabled action_enabled? action_enabled=
+    analysis_debt_ranges analysis_debt_ranges=
     analysis_footer analysis_footer=
     app_dir app_dir=
     logger_options logger_options=
@@ -42,7 +43,7 @@ module QueryPolice
   # @return [QueryPolice::Analysis] analysis - contains the analysis of the query
   def analyse(relation)
     rules_config = Helper.load_config(config.rules_path)
-    analysis = Analysis.new(footer: config.analysis_footer)
+    analysis = Analysis.new(config: config)
     summary = {}
 
     query_plan = Explain.full_explain(relation, config.verbosity)
