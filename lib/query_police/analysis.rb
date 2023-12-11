@@ -165,7 +165,8 @@ module QueryPolice
       return nil unless @debt_ranges.present?
 
       @debt_ranges.each do |range_config|
-        return range_config if range_config.dig("range").include?(query_debt)
+        range_config = range_config.wida
+        return range_config if range_config.dig("range")&.include?(query_debt)
       end
 
       nil
